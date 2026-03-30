@@ -1,0 +1,386 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Button from '@/components/ui/button'
+
+const exerciseLibrary = [
+  { name: 'Barbell Squat', muscle: 'Legs', equipment: 'Barbell' },
+  { name: 'Bench Press', muscle: 'Chest', equipment: 'Barbell' },
+  { name: 'Deadlift', muscle: 'Back', equipment: 'Barbell' },
+  { name: 'OHP', muscle: 'Shoulders', equipment: 'Barbell' },
+  { name: 'Pull Ups', muscle: 'Back', equipment: 'Bodyweight' },
+  { name: 'Dumbbell Curl', muscle: 'Arms', equipment: 'Dumbbell' },
+  { name: 'Tricep Pushdown', muscle: 'Arms', equipment: 'Cable' },
+  { name: 'Leg Press', muscle: 'Legs', equipment: 'Machine' },
+  { name: 'Lat Pulldown', muscle: 'Back', equipment: 'Cable' },
+  { name: 'Cable Row', muscle: 'Back', equipment: 'Cable' },
+  { name: 'Incline Press', muscle: 'Chest', equipment: 'Dumbbell' },
+  { name: 'Leg Curl', muscle: 'Legs', equipment: 'Machine' },
+  { name: 'Plank', muscle: 'Core', equipment: 'Bodyweight' },
+  { name: 'Treadmill Run', muscle: 'Cardio', equipment: 'Machine' },
+  { name: 'Jump Rope', muscle: 'Cardio', equipment: 'Bodyweight' },
+]
+
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+export default function NewWorkoutPage() {
+  const router = useRouter()
+
+  const [step, setStep] = useState(1)
+  const [planInfo, setPlanInfo] = useState({ name: '', type: '', weeks: '', sessions: '', description: '' })
+  const [selectedDay, setSelectedDay] = useState('Monday')
+  const [schedule, setSchedule] = useState({})
+  const [showExercisePicker, setShowExercisePicker] = useState(false)
+  const [exerciseSearch, setExerciseSearch] = useState('')
+  const [muscleFilter, setMuscleFilter] = useState('all')
+
+  const muscles = ['all', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio']
+
+  const filteredExercises = exerciseLibrary.filter(e => {
+    const matchSearch = e.name.toLowerCase().includes(exerciseSearch.toLowerCase())
+    const matchMuscle = muscleFilter === 'all' || e.muscle === muscleFilter
+    return matchSearch && matchMuscle
+  })
+
+  const addExercise = (exercise) => {
+    setSchedule(prev => {
+      const dayExercises = prev[selectedDay] || []
+      if (dayExercises.find(e => e.name === exercise.name)) return prev
+      return {
+        ...prev,
+        [selectedDay]: [...dayExercises, { ...exercise, sets: 3, reps: '10', weight: '' }]
+      }
+    })
+    setShowExercisePicker(false)
+  }
+
+  const removeExercise = (day, index) => {
+    setSchedule(prev => ({
+      ...prev,
+      [day]: prev[day].filter((_, i) => i !== index)
+    }))
+  }
+
+  const updateExercise = (day, index, field, value) => {
+    setSchedule(prev => ({
+      ...prev,
+      [day]: prev[day].map((ex, i) => i === index ? { ...ex, [field]: value } : ex)
+    }))
+  }
+
+  const inputStyle = {
+    width: '100%', backgroundColor: '#121212',
+    border: '1px solid #3A3A3A', borderRadius: '8px',
+    padding: '10px 14px', color: '#FFFFFF', fontSize: '14px',
+    outline: 'none', boxSizing: 'border-box',
+  }
+
+  const totalExercises = Object.values(schedule).reduce((sum, day) => sum + day.length, 0)
+  const activeDays = Object.keys(schedule).filter(d => schedule[d]?.length > 0)
+
+  return (
+    <div style={{ width: '100%', maxWidth: '860px', boxSizing: 'border-box' }}>
+
+      <style>{`
+        .step-bar { display: flex; align-items: center; gap: 0; margin-bottom: 32px; }
+        .step-item { display: flex; flex-direction: column; align-items: center; flex: 1; }
+        .step-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+        .step-line { flex: 1; height: 2px; margin-top: -16px; }
+        .step-label { font-size: 11px; margin-top: 6px; text-align: center; }
+        .day-tab { padding: 8px 14px; border-radius: 8px; border: 1px solid #3A3A3A; background: transparent; color: #A0A0A0; font-size: 13px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .day-tab.active { background: #CCFF00; color: #121212; border-color: #CCFF00; font-weight: 600; }
+        .day-tab.has-exercises { border-color: #CCFF00; color: #CCFF00; }
+        .ex-row { display: grid; grid-template-columns: 1fr 70px 70px 90px 36px; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid #3A3A3A; }
+        .ex-input { background: #121212; border: 1px solid #3A3A3A; border-radius: 6px; padding: 6px 8px; color: #FFFFFF; font-size: 12px; outline: none; width: 100%; text-align: center; box-sizing: border-box; }
+        .ex-input:focus { border-color: #CCFF00; }
+        .remove-btn { background: transparent; border: none; color: #A0A0A0; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .remove-btn:hover { color: #FF5F1F; }
+        .exercise-picker-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
+        .exercise-picker-item:hover { background: #3A3A3A; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal { background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 16px; padding: 24px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
+        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .summary-card { background: #121212; border-radius: 10px; padding: 14px; text-align: center; }
+        @media (max-width: 600px) {
+          .ex-row { grid-template-columns: 1fr 60px 60px 36px; }
+          .summary-grid { grid-template-columns: 1fr 1fr; }
+        }
+      `}</style>
+
+      {/* Back */}
+      <p
+        onClick={() => router.push('/workouts')}
+        style={{ fontSize: '13px', color: '#A0A0A0', marginBottom: '20px', cursor: 'pointer' }}
+      >← Back to Workouts</p>
+
+      {/* Title */}
+      <div style={{ marginBottom: '28px' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 4px' }}>Create Workout Plan</h2>
+        <p style={{ fontSize: '14px', color: '#A0A0A0', margin: 0 }}>Build a multi-week training program for your clients</p>
+      </div>
+
+      {/* Step Bar */}
+      <div className="step-bar">
+        {[{ n: 1, label: 'Plan Info' }, { n: 2, label: 'Build Schedule' }, { n: 3, label: 'Review' }].map((s, i, arr) => (
+          <div key={s.n} style={{ display: 'flex', alignItems: 'center', flex: i < arr.length - 1 ? 1 : 'none' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div className="step-circle" style={{
+                backgroundColor: step >= s.n ? '#CCFF00' : '#2C2C2C',
+                color: step >= s.n ? '#121212' : '#A0A0A0',
+                border: step >= s.n ? 'none' : '1px solid #3A3A3A',
+              }}>{step > s.n ? '✓' : s.n}</div>
+              <span className="step-label" style={{ color: step >= s.n ? '#CCFF00' : '#A0A0A0' }}>{s.label}</span>
+            </div>
+            {i < arr.length - 1 && (
+              <div className="step-line" style={{ backgroundColor: step > s.n ? '#CCFF00' : '#3A3A3A', flex: 1, marginBottom: '18px' }} />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* STEP 1 — Plan Info */}
+      {step === 1 && (
+        <div style={{ backgroundColor: '#2C2C2C', border: '1px solid #3A3A3A', borderRadius: '16px', padding: '28px' }}>
+          <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 20px' }}>Plan Details</p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+            <div>
+              <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Plan Name</p>
+              <input style={inputStyle} placeholder="e.g. Strength Phase 1" value={planInfo.name} onChange={e => setPlanInfo({ ...planInfo, name: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'} />
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Plan Type</p>
+              <select style={inputStyle} value={planInfo.type} onChange={e => setPlanInfo({ ...planInfo, type: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'}>
+                <option value="">Select type</option>
+                <option>Strength</option>
+                <option>Fat Loss</option>
+                <option>Hypertrophy</option>
+                <option>General Fitness</option>
+              </select>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Duration (weeks)</p>
+              <input style={inputStyle} type="number" placeholder="e.g. 8" value={planInfo.weeks} onChange={e => setPlanInfo({ ...planInfo, weeks: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'} />
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Sessions per Week</p>
+              <select style={inputStyle} value={planInfo.sessions} onChange={e => setPlanInfo({ ...planInfo, sessions: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'}>
+                <option value="">Select sessions</option>
+                <option value="1">1 session/week</option>
+                <option value="2">2 sessions/week</option>
+                <option value="3">3 sessions/week</option>
+                <option value="4">4 sessions/week</option>
+                <option value="5">5 sessions/week</option>
+                <option value="6">6 sessions/week</option>
+                <option value="7">7 sessions/week</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Description (optional)</p>
+            <textarea
+              style={{ ...inputStyle, height: '90px', resize: 'vertical' }}
+              placeholder="Describe this workout plan..."
+              value={planInfo.description}
+              onChange={e => setPlanInfo({ ...planInfo, description: e.target.value })}
+              onFocus={e => e.target.style.borderColor = '#CCFF00'}
+              onBlur={e => e.target.style.borderColor = '#3A3A3A'}
+            />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              onClick={() => {
+                if (!planInfo.name || !planInfo.type || !planInfo.weeks || !planInfo.sessions) {
+                  alert('Please fill in all required fields.')
+                  return
+                }
+                setStep(2)
+              }}
+            >Next: Build Schedule →</Button>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 2 — Build Schedule */}
+      {step === 2 && (
+        <div>
+          <div style={{ backgroundColor: '#2C2C2C', border: '1px solid #3A3A3A', borderRadius: '16px', padding: '24px', marginBottom: '16px' }}>
+
+            {/* Plan summary bar */}
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '20px', padding: '12px 16px', backgroundColor: '#121212', borderRadius: '10px' }}>
+              <span style={{ fontSize: '13px', color: '#FFFFFF', fontWeight: '600' }}>{planInfo.name}</span>
+              <span style={{ fontSize: '13px', color: '#A0A0A0' }}>{planInfo.type}</span>
+              <span style={{ fontSize: '13px', color: '#A0A0A0' }}>{planInfo.weeks} weeks</span>
+              <span style={{ fontSize: '13px', color: '#A0A0A0' }}>{planInfo.sessions} sessions/wk</span>
+            </div>
+
+            {/* Day Tabs */}
+            <p style={{ fontSize: '13px', color: '#A0A0A0', margin: '0 0 12px' }}>Select a day to add exercises:</p>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+              {days.map(day => (
+                <button
+                  key={day}
+                  className={`day-tab ${selectedDay === day ? 'active' : ''} ${schedule[day]?.length > 0 && selectedDay !== day ? 'has-exercises' : ''}`}
+                  onClick={() => setSelectedDay(day)}
+                >{day.slice(0, 3)}</button>
+              ))}
+            </div>
+
+            {/* Exercises for selected day */}
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>{selectedDay}</p>
+                <button
+                  onClick={() => setShowExercisePicker(true)}
+                  style={{ backgroundColor: '#CCFF00', color: '#121212', border: 'none', borderRadius: '8px', padding: '7px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
+                >+ Add Exercise</button>
+              </div>
+
+              {!schedule[selectedDay] || schedule[selectedDay].length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px', color: '#A0A0A0', border: '1px dashed #3A3A3A', borderRadius: '10px' }}>
+                  No exercises yet. Click "+ Add Exercise" to get started.
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 70px 70px 90px 36px', gap: '8px', padding: '6px 0', fontSize: '11px', color: '#A0A0A0', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #3A3A3A' }}>
+                    <span>Exercise</span><span style={{ textAlign: 'center' }}>Sets</span><span style={{ textAlign: 'center' }}>Reps</span><span style={{ textAlign: 'center' }}>Weight</span><span></span>
+                  </div>
+                  {schedule[selectedDay].map((ex, i) => (
+                    <div key={i} className="ex-row">
+                      <div>
+                        <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{ex.name}</p>
+                        <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{ex.muscle} · {ex.equipment}</p>
+                      </div>
+                      <input className="ex-input" type="number" value={ex.sets} onChange={e => updateExercise(selectedDay, i, 'sets', e.target.value)} />
+                      <input className="ex-input" value={ex.reps} onChange={e => updateExercise(selectedDay, i, 'reps', e.target.value)} />
+                      <input className="ex-input" placeholder="kg / BW" value={ex.weight} onChange={e => updateExercise(selectedDay, i, 'weight', e.target.value)} />
+                      <button className="remove-btn" onClick={() => removeExercise(selectedDay, i)}>✕</button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+            <Button variant="secondary" onClick={() => setStep(1)}>← Back</Button>
+            <Button onClick={() => {
+              if (totalExercises === 0) { alert('Please add at least one exercise.'); return }
+              setStep(3)
+            }}>Next: Review →</Button>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 3 — Review */}
+      {step === 3 && (
+        <div style={{ backgroundColor: '#2C2C2C', border: '1px solid #3A3A3A', borderRadius: '16px', padding: '28px' }}>
+          <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 20px' }}>Review Your Plan</p>
+
+          {/* Summary */}
+          <div className="summary-grid">
+            {[
+              { label: 'Plan Name', value: planInfo.name },
+              { label: 'Type', value: planInfo.type },
+              { label: 'Duration', value: planInfo.weeks + ' weeks' },
+              { label: 'Sessions', value: planInfo.sessions + '/week' },
+              { label: 'Active Days', value: activeDays.length },
+              { label: 'Exercises', value: totalExercises },
+            ].map((s, i) => (
+              <div key={i} className="summary-card">
+                <p style={{ fontSize: '10px', color: '#A0A0A0', margin: '0 0 4px', textTransform: 'uppercase' }}>{s.label}</p>
+                <p style={{ fontSize: '15px', fontWeight: '700', color: '#CCFF00', margin: 0 }}>{s.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Schedule Summary */}
+          <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 12px' }}>Weekly Schedule</p>
+          {activeDays.length === 0 ? (
+            <p style={{ color: '#A0A0A0', fontSize: '13px' }}>No exercises added.</p>
+          ) : (
+            activeDays.map(day => (
+              <div key={day} style={{ marginBottom: '16px' }}>
+                <p style={{ fontSize: '13px', fontWeight: '600', color: '#CCFF00', margin: '0 0 8px' }}>{day}</p>
+                {schedule[day].map((ex, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #3A3A3A', fontSize: '13px' }}>
+                    <span style={{ color: '#FFFFFF' }}>{ex.name}</span>
+                    <span style={{ color: '#A0A0A0' }}>{ex.sets} sets × {ex.reps} reps {ex.weight ? `@ ${ex.weight}` : ''}</span>
+                  </div>
+                ))}
+              </div>
+            ))
+          )}
+
+          {planInfo.description && (
+            <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#121212', borderRadius: '8px' }}>
+              <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 4px' }}>Description</p>
+              <p style={{ fontSize: '13px', color: '#FFFFFF', margin: 0 }}>{planInfo.description}</p>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', gap: '10px' }}>
+            <Button variant="secondary" onClick={() => setStep(2)}>← Back</Button>
+            <Button onClick={() => router.push('/workouts')}>Save Plan ✓</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Exercise Picker Modal */}
+      {showExercisePicker && (
+        <div className="modal-overlay" onClick={() => setShowExercisePicker(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>Add Exercise — {selectedDay}</h3>
+              <button onClick={() => setShowExercisePicker(false)} style={{ background: 'transparent', border: 'none', color: '#A0A0A0', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+            </div>
+
+            <input
+              style={{ width: '100%', backgroundColor: '#121212', border: '1px solid #3A3A3A', borderRadius: '8px', padding: '9px 12px', color: '#FFFFFF', fontSize: '13px', outline: 'none', marginBottom: '12px', boxSizing: 'border-box' }}
+              placeholder="Search exercises..."
+              value={exerciseSearch}
+              onChange={e => setExerciseSearch(e.target.value)}
+              onFocus={e => e.target.style.borderColor = '#CCFF00'}
+              onBlur={e => e.target.style.borderColor = '#3A3A3A'}
+            />
+
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
+              {muscles.map(m => (
+                <button
+                  key={m}
+                  onClick={() => setMuscleFilter(m)}
+                  style={{
+                    padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '500',
+                    cursor: 'pointer', border: '1px solid', textTransform: 'capitalize', transition: 'all 0.2s',
+                    backgroundColor: muscleFilter === m ? '#CCFF00' : 'transparent',
+                    color: muscleFilter === m ? '#121212' : '#A0A0A0',
+                    borderColor: muscleFilter === m ? '#CCFF00' : '#3A3A3A',
+                  }}
+                >{m}</button>
+              ))}
+            </div>
+
+            <div>
+              {filteredExercises.map((ex, i) => (
+                <div key={i} className="exercise-picker-item" onClick={() => addExercise(ex)}>
+                  <div>
+                    <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{ex.name}</p>
+                    <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{ex.muscle} · {ex.equipment}</p>
+                  </div>
+                  <span style={{ fontSize: '20px', color: '#CCFF00' }}>+</span>
+                </div>
+              ))}
+              {filteredExercises.length === 0 && (
+                <p style={{ textAlign: 'center', color: '#A0A0A0', fontSize: '13px', padding: '20px' }}>No exercises found.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  )
+}
