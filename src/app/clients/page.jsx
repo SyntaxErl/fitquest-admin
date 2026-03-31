@@ -90,21 +90,29 @@ export default function ClientsPage() {
         .search-input:focus { border-color: #CCFF00; }
         .filter-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid #3A3A3A; background: transparent; color: #A0A0A0; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-transform: capitalize; }
         .filter-btn.active { background: #CCFF00; color: #121212; border-color: #CCFF00; font-weight: 600; }
+
+        /* Desktop table */
         .client-table-header { display: grid; grid-template-columns: 220px 1fr 1fr 120px 100px 90px; padding: 8px 20px; font-size: 11px; font-weight: 500; color: #A0A0A0; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-        .client-row { display: grid; grid-template-columns: 220px 1fr 1fr 120px 100px 90px; align-items: center; background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 12px; padding: 14px 20px; margin-bottom: 8px; transition: border-color 0.2s; text-decoration: none; cursor: pointer; gap: 8px; }
-        .client-row:hover { border-color: #CCFF00; }
+        .client-row-desktop { display: grid; grid-template-columns: 220px 1fr 1fr 120px 100px 90px; align-items: center; background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 12px; padding: 14px 20px; margin-bottom: 8px; transition: border-color 0.2s; text-decoration: none; cursor: pointer; gap: 8px; }
+        .client-row-desktop:hover { border-color: #CCFF00; }
         .col-cell { display: flex; flex-direction: column; justify-content: center; }
         .col-label { font-size: 11px; color: #A0A0A0; margin-bottom: 2px; }
         .col-value { font-size: 13px; color: #FFFFFF; }
+
+        /* Mobile card */
+        .client-card-mobile { display: none; background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 14px; padding: 16px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s; text-decoration: none; }
+        .client-card-mobile:hover { border-color: #CCFF00; }
+
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .modal { background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 16px; padding: 28px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
+
         @media (max-width: 1024px) {
           .client-table-header { display: none; }
-          .client-row { grid-template-columns: 1fr 1fr; gap: 12px; }
+          .client-row-desktop { display: none; }
+          .client-card-mobile { display: block; }
         }
         @media (max-width: 600px) {
-          .client-row { grid-template-columns: 1fr; }
           .grid-2 { grid-template-columns: 1fr; }
         }
       `}</style>
@@ -128,7 +136,7 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      {/* Table Header */}
+      {/* Desktop Table Header */}
       <div className="client-table-header">
         <span>Client</span>
         <span>Plan</span>
@@ -138,44 +146,93 @@ export default function ClientsPage() {
         <span>Status</span>
       </div>
 
-      {/* Client Rows */}
+      {/* Client List */}
       {filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#A0A0A0' }}>No clients found.</div>
       ) : (
         filtered.map((client, i) => (
-          <Link key={client.id} href={'/clients/' + client.id} style={{ textDecoration: 'none' }}>
-            <div className="client-row">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Avatar name={client.name} size={40} color={avatarColors[i % avatarColors.length]} />
-                <div>
-                  <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{client.name}</p>
+          <div key={client.id}>
+
+            {/* Desktop Row */}
+            <Link href={'/clients/' + client.id} style={{ textDecoration: 'none' }}>
+              <div className="client-row-desktop">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Avatar name={client.name} size={40} color={avatarColors[i % avatarColors.length]} />
+                  <div>
+                    <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{client.name}</p>
+                    <p style={{ fontSize: '12px', color: '#A0A0A0', margin: 0 }}>{client.email}</p>
+                  </div>
+                </div>
+                <div className="col-cell">
+                  <span className="col-label">Plan</span>
+                  <span className="col-value">{client.plan}</span>
+                </div>
+                <div className="col-cell">
+                  <span className="col-label">Goal</span>
+                  <span className="col-value">{client.goal}</span>
+                </div>
+                <div className="col-cell">
+                  <span className="col-label">Progress</span>
+                  <div style={{ height: '6px', backgroundColor: '#121212', borderRadius: '10px', marginTop: '6px', width: '80px' }}>
+                    <div style={{ width: client.progress + '%', height: '100%', backgroundColor: '#CCFF00', borderRadius: '10px' }} />
+                  </div>
+                  <span style={{ fontSize: '11px', color: '#A0A0A0', marginTop: '4px' }}>{client.progress}%</span>
+                </div>
+                <div className="col-cell">
+                  <span className="col-label">Joined</span>
+                  <span className="col-value">{client.joined}</span>
+                </div>
+                <div className="col-cell">
+                  <Badge label={client.status} status={client.status} />
+                </div>
+              </div>
+            </Link>
+
+            {/* Mobile Card */}
+            <Link href={'/clients/' + client.id} className="client-card-mobile" style={{ textDecoration: 'none' }}>
+
+              {/* Top Row — Avatar + Name + Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                <Avatar name={client.name} size={44} color={avatarColors[i % avatarColors.length]} />
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: '15px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 2px' }}>{client.name}</p>
                   <p style={{ fontSize: '12px', color: '#A0A0A0', margin: 0 }}>{client.email}</p>
                 </div>
-              </div>
-              <div className="col-cell">
-                <span className="col-label">Plan</span>
-                <span className="col-value">{client.plan}</span>
-              </div>
-              <div className="col-cell">
-                <span className="col-label">Goal</span>
-                <span className="col-value">{client.goal}</span>
-              </div>
-              <div className="col-cell">
-                <span className="col-label">Progress</span>
-                <div style={{ height: '6px', backgroundColor: '#121212', borderRadius: '10px', marginTop: '6px', width: '80px' }}>
-                  <div style={{ width: client.progress + '%', height: '100%', backgroundColor: '#CCFF00', borderRadius: '10px' }} />
-                </div>
-                <span style={{ fontSize: '11px', color: '#A0A0A0', marginTop: '4px' }}>{client.progress}%</span>
-              </div>
-              <div className="col-cell">
-                <span className="col-label">Joined</span>
-                <span className="col-value">{client.joined}</span>
-              </div>
-              <div className="col-cell">
                 <Badge label={client.status} status={client.status} />
               </div>
-            </div>
-          </Link>
+
+              {/* Plan + Goal Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                <div style={{ backgroundColor: '#121212', borderRadius: '8px', padding: '10px 12px' }}>
+                  <p style={{ fontSize: '10px', color: '#A0A0A0', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Plan</p>
+                  <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>{client.plan}</p>
+                </div>
+                <div style={{ backgroundColor: '#121212', borderRadius: '8px', padding: '10px 12px' }}>
+                  <p style={{ fontSize: '10px', color: '#A0A0A0', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Goal</p>
+                  <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>{client.goal}</p>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '11px', color: '#A0A0A0' }}>Progress</span>
+                  <span style={{ fontSize: '11px', color: '#CCFF00', fontWeight: '600' }}>{client.progress}%</span>
+                </div>
+                <div style={{ height: '6px', backgroundColor: '#121212', borderRadius: '10px' }}>
+                  <div style={{ width: client.progress + '%', height: '100%', backgroundColor: '#CCFF00', borderRadius: '10px' }} />
+                </div>
+              </div>
+
+              {/* Bottom Row — Joined + Arrow */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid #3A3A3A' }}>
+                <span style={{ fontSize: '12px', color: '#A0A0A0' }}>Joined {client.joined}</span>
+                <span style={{ fontSize: '13px', color: '#CCFF00', fontWeight: '600' }}>View Profile →</span>
+              </div>
+
+            </Link>
+
+          </div>
         ))
       )}
 
@@ -183,14 +240,11 @@ export default function ClientsPage() {
       {showModal && (
         <div className="modal-overlay" onClick={resetModal}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-
-            {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>Add New Client</h3>
               <button onClick={resetModal} style={{ background: 'transparent', border: 'none', color: '#A0A0A0', fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
 
-            {/* Personal Info */}
             {sectionLabel('Personal Info')}
             <div className="grid-2" style={{ marginBottom: '12px' }}>
               <div>{fieldLabel('Full Name')}{fieldInput('e.g. Juan Dela Cruz', 'name')}</div>
@@ -214,7 +268,6 @@ export default function ClientsPage() {
               </div>
             </div>
 
-            {/* Body Metrics */}
             {sectionLabel('Body Metrics')}
             <div className="grid-2" style={{ marginBottom: '12px' }}>
               <div>{fieldLabel('Weight')}{fieldInput('e.g. 75 kg', 'weight')}</div>
@@ -222,7 +275,6 @@ export default function ClientsPage() {
               <div>{fieldLabel('Body Fat %')}{fieldInput('e.g. 18%', 'bodyFat')}</div>
             </div>
 
-            {/* Dietary Preferences */}
             {sectionLabel('Dietary Preferences')}
             <div className="grid-2" style={{ marginBottom: '12px' }}>
               <div>{fieldLabel('Diet Type')}{fieldInput('e.g. High Protein', 'preference')}</div>
@@ -231,17 +283,11 @@ export default function ClientsPage() {
               <div>{fieldLabel('Water Intake')}{fieldInput('e.g. 3L/day', 'waterIntake')}</div>
             </div>
 
-            {/* Assign Workout Plan */}
             {sectionLabel('Assign Workout Plan')}
             {!showPlanPicker ? (
               <div
                 onClick={() => setShowPlanPicker(true)}
-                style={{
-                  backgroundColor: '#121212', border: '1px dashed #3A3A3A',
-                  borderRadius: '8px', padding: '12px 14px', marginBottom: '20px',
-                  cursor: 'pointer', transition: 'border-color 0.2s',
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                }}
+                style={{ backgroundColor: '#121212', border: '1px dashed #3A3A3A', borderRadius: '8px', padding: '12px 14px', marginBottom: '20px', cursor: 'pointer', transition: 'border-color 0.2s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 onMouseOver={e => e.currentTarget.style.borderColor = '#CCFF00'}
                 onMouseOut={e => e.currentTarget.style.borderColor = '#3A3A3A'}
               >
@@ -266,12 +312,7 @@ export default function ClientsPage() {
                     <div
                       key={plan.id}
                       onClick={() => { setNewClient({...newClient, plan}); setShowPlanPicker(false) }}
-                      style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        padding: '12px 14px', cursor: 'pointer', transition: 'background 0.15s',
-                        borderBottom: '1px solid #2A2A2A',
-                        backgroundColor: newClient.plan?.id === plan.id ? '#1E2A1A' : 'transparent',
-                      }}
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', cursor: 'pointer', transition: 'background 0.15s', borderBottom: '1px solid #2A2A2A', backgroundColor: newClient.plan?.id === plan.id ? '#1E2A1A' : 'transparent' }}
                       onMouseOver={e => e.currentTarget.style.backgroundColor = '#2C2C2C'}
                       onMouseOut={e => e.currentTarget.style.backgroundColor = newClient.plan?.id === plan.id ? '#1E2A1A' : 'transparent'}
                     >
@@ -281,9 +322,7 @@ export default function ClientsPage() {
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                         <span style={{ fontSize: '11px', fontWeight: '600', color: typeColors[plan.type] || '#CCFF00' }}>{plan.type}</span>
-                        {newClient.plan?.id === plan.id && (
-                          <span style={{ fontSize: '11px', color: '#CCFF00' }}>✓ Selected</span>
-                        )}
+                        {newClient.plan?.id === plan.id && <span style={{ fontSize: '11px', color: '#CCFF00' }}>✓ Selected</span>}
                       </div>
                     </div>
                   ))}
@@ -291,12 +330,10 @@ export default function ClientsPage() {
               </div>
             )}
 
-            {/* Buttons */}
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <Button variant="secondary" onClick={resetModal}>Cancel</Button>
               <Button onClick={resetModal}>Add Client</Button>
             </div>
-
           </div>
         </div>
       )}
