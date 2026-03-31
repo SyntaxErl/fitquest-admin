@@ -49,31 +49,47 @@ export default function WorkoutsPage() {
     <div style={{ width: '100%', boxSizing: 'border-box' }}>
 
       <style>{`
-       .plan-table-header {
-  display: grid;
-  grid-template-columns: 2fr 1fr 80px 100px 80px 100px 60px;
-  padding: 8px 20px;
-  font-size: 11px;
-  font-weight: 500;
-  color: #A0A0A0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 6px;
-}
-        .plan-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 80px 100px 80px 100px 60px;
-  align-items: center;
-  background: #2C2C2C;
-  border: 1px solid #3A3A3A;
-  border-radius: 12px;
-  padding: 14px 20px;
-  margin-bottom: 8px;
-  transition: border-color 0.2s;
-  cursor: pointer;
-  gap: 8px;
-}
-        .plan-row:hover { border-color: #CCFF00; }
+        .plan-table-header {
+          display: grid;
+          grid-template-columns: 2fr 1fr 80px 100px 80px 100px 60px;
+          padding: 8px 20px;
+          font-size: 11px;
+          font-weight: 500;
+          color: #A0A0A0;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 6px;
+        }
+
+        /* Desktop row */
+        .plan-row-desktop {
+          display: grid;
+          grid-template-columns: 2fr 1fr 80px 100px 80px 100px 60px;
+          align-items: center;
+          background: #2C2C2C;
+          border: 1px solid #3A3A3A;
+          border-radius: 12px;
+          padding: 14px 20px;
+          margin-bottom: 8px;
+          transition: border-color 0.2s;
+          cursor: pointer;
+          gap: 8px;
+        }
+        .plan-row-desktop:hover { border-color: #CCFF00; }
+
+        /* Mobile card */
+        .plan-card-mobile {
+          display: none;
+          background: #2C2C2C;
+          border: 1px solid #3A3A3A;
+          border-radius: 14px;
+          padding: 16px;
+          margin-bottom: 10px;
+          cursor: pointer;
+          transition: border-color 0.2s;
+        }
+        .plan-card-mobile:hover { border-color: #CCFF00; }
+
         .action-btn {
           background: transparent;
           border: 1px solid #3A3A3A;
@@ -85,6 +101,7 @@ export default function WorkoutsPage() {
           transition: all 0.2s;
         }
         .action-btn:hover { border-color: #CCFF00; color: #CCFF00; }
+
         .modal-overlay {
           position: fixed; inset: 0;
           background: rgba(0,0,0,0.7);
@@ -102,12 +119,29 @@ export default function WorkoutsPage() {
           max-height: 90vh;
           overflow-y: auto;
         }
-        @media (max-width: 1024px) {
-          .plan-table-header { display: none; }
-          .plan-row { grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .pill-row {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-top: 10px;
         }
-        @media (max-width: 600px) {
-          .plan-row { grid-template-columns: 1fr; }
+        .pill {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          background: #121212;
+          border-radius: 8px;
+          padding: 8px 14px;
+          min-width: 60px;
+        }
+        .pill-label { font-size: 10px; color: #A0A0A0; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+        .pill-value { font-size: 14px; fontWeight: 700; color: #FFFFFF; }
+
+        @media (max-width: 768px) {
+          .plan-table-header { display: none; }
+          .plan-row-desktop { display: none; }
+          .plan-card-mobile { display: block; }
         }
       `}</style>
 
@@ -149,62 +183,89 @@ export default function WorkoutsPage() {
         </div>
       </div>
 
-      {/* Table Header */}
-     <div className="plan-table-header">
-  <span>Plan Name</span>
-  <span>Type</span>
-  <span>Weeks</span>
-  <span>Sessions/wk</span>
-  <span>Clients</span>
-  <span>Status</span>
-  <span></span>
-</div>
+      {/* Desktop Table Header */}
+      <div className="plan-table-header">
+        <span>Plan Name</span>
+        <span>Type</span>
+        <span>Weeks</span>
+        <span>Sessions/wk</span>
+        <span>Clients</span>
+        <span>Status</span>
+        <span></span>
+      </div>
 
-      {/* Plan Rows */}
+      {/* Plan List */}
       {filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#A0A0A0' }}>No plans found.</div>
       ) : (
         filtered.map((plan) => (
-          <div key={plan.id} className="plan-row" onClick={() => router.push('/workouts/' + plan.id)}>
+          <div key={plan.id}>
 
-            {/* Name */}
-            <div>
-              <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{plan.name}</p>
-              <p style={{ fontSize: '12px', color: '#A0A0A0', margin: 0 }}>Created {plan.created}</p>
+            {/* Desktop Row */}
+            <div className="plan-row-desktop" onClick={() => router.push('/workouts/' + plan.id)}>
+              <div>
+                <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{plan.name}</p>
+                <p style={{ fontSize: '12px', color: '#A0A0A0', margin: 0 }}>Created {plan.created}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 4px' }}>Type</p>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: typeColors[plan.type] || '#CCFF00' }}>{plan.type}</span>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 2px' }}>Weeks</p>
+                <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>{plan.weeks}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 2px' }}>Sessions/wk</p>
+                <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>{plan.sessions}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 2px' }}>Clients</p>
+                <p style={{ fontSize: '14px', fontWeight: '600', color: '#CCFF00', margin: 0 }}>{plan.clients}</p>
+              </div>
+              <div>
+                <Badge label={plan.status} status={plan.status} />
+              </div>
+              <div>
+                <span style={{ fontSize: '12px', color: '#CCFF00' }}>View →</span>
+              </div>
             </div>
 
-            {/* Type */}
-            <div>
-              <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 4px' }}>Type</p>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: typeColors[plan.type] || '#CCFF00' }}>{plan.type}</span>
-            </div>
+            {/* Mobile Card */}
+            <div className="plan-card-mobile" onClick={() => router.push('/workouts/' + plan.id)}>
+              {/* Card Top Row */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: '15px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 3px' }}>{plan.name}</p>
+                  <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>Created {plan.created}</p>
+                </div>
+                <Badge label={plan.status} status={plan.status} />
+              </div>
 
-            {/* Weeks */}
-            <div>
-              <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 2px' }}>Weeks</p>
-              <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>{plan.weeks}</p>
-            </div>
+              {/* Type */}
+              <span style={{ fontSize: '12px', fontWeight: '600', color: typeColors[plan.type] || '#CCFF00', backgroundColor: '#1A1A1A', padding: '3px 10px', borderRadius: '20px', border: `1px solid ${typeColors[plan.type] || '#CCFF00'}33` }}>
+                {plan.type}
+              </span>
 
-            {/* Sessions */}
-            <div>
-              <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 2px' }}>Sessions/wk</p>
-              <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>{plan.sessions}</p>
-            </div>
+              {/* Stats Pills */}
+              <div className="pill-row">
+                {[
+                  { label: 'Weeks',    value: plan.weeks },
+                  { label: 'Sessions', value: plan.sessions + '/wk' },
+                  { label: 'Clients',  value: plan.clients },
+                ].map((pill, i) => (
+                  <div key={i} className="pill">
+                    <span className="pill-label">{pill.label}</span>
+                    <span className="pill-value" style={{ color: pill.label === 'Clients' ? '#CCFF00' : '#FFFFFF' }}>{pill.value}</span>
+                  </div>
+                ))}
+              </div>
 
-            {/* Clients */}
-            <div>
-              <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 2px' }}>Clients</p>
-              <p style={{ fontSize: '14px', fontWeight: '600', color: '#CCFF00', margin: 0 }}>{plan.clients}</p>
+              {/* View link */}
+              <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #3A3A3A', display: 'flex', justifyContent: 'flex-end' }}>
+                <span style={{ fontSize: '13px', color: '#CCFF00', fontWeight: '600' }}>View Plan →</span>
+              </div>
             </div>
-
-            {/* Status */}
-            <div>
-              <Badge label={plan.status} status={plan.status} />
-            </div>
-
-          <div>
-  <span style={{ fontSize: '12px', color: '#CCFF00' }}>View →</span>
-</div>
 
           </div>
         ))
@@ -218,10 +279,8 @@ export default function WorkoutsPage() {
               <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>Edit Plan</h3>
               <button onClick={() => setEditPlan(null)} style={{ background: 'transparent', border: 'none', color: '#A0A0A0', fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
-
             <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Plan Name</p>
             <input style={inputStyle} value={editPlan.name} onChange={e => setEditPlan({...editPlan, name: e.target.value})} onFocus={e => e.target.style.borderColor='#CCFF00'} onBlur={e => e.target.style.borderColor='#3A3A3A'} />
-
             <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Plan Type</p>
             <select style={inputStyle} value={editPlan.type} onChange={e => setEditPlan({...editPlan, type: e.target.value})} onFocus={e => e.target.style.borderColor='#CCFF00'} onBlur={e => e.target.style.borderColor='#3A3A3A'}>
               <option>Strength</option>
@@ -229,58 +288,23 @@ export default function WorkoutsPage() {
               <option>Hypertrophy</option>
               <option>General Fitness</option>
             </select>
-
             <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Duration (weeks)</p>
-            <input style={inputStyle} type="number" value={editPlan.weeks} onChange={e => setEditPlan({...editPlan, weeks: e.target.value})} onFocus={e => e.target.style.borderColor='#CCFF00'} onBlur={e => e.target.style.borderColor='#3A3A3A'} />
-
+            <input type="number" style={inputStyle} value={editPlan.weeks} onChange={e => setEditPlan({...editPlan, weeks: e.target.value})} onFocus={e => e.target.style.borderColor='#CCFF00'} onBlur={e => e.target.style.borderColor='#3A3A3A'} />
             <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Sessions per Week</p>
             <select style={inputStyle} value={editPlan.sessions} onChange={e => setEditPlan({...editPlan, sessions: e.target.value})} onFocus={e => e.target.style.borderColor='#CCFF00'} onBlur={e => e.target.style.borderColor='#3A3A3A'}>
               {[1,2,3,4,5,6,7].map(n => (
                 <option key={n} value={n}>{n} session{n > 1 ? 's' : ''}/week</option>
               ))}
             </select>
-
             <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Status</p>
             <select style={inputStyle} value={editPlan.status} onChange={e => setEditPlan({...editPlan, status: e.target.value})} onFocus={e => e.target.style.borderColor='#CCFF00'} onBlur={e => e.target.style.borderColor='#3A3A3A'}>
               <option>active</option>
               <option>inactive</option>
               <option>completed</option>
             </select>
-
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px' }}>
               <Button variant="secondary" onClick={() => setEditPlan(null)}>Cancel</Button>
               <Button onClick={() => setEditPlan(null)}>Save Changes</Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Create Plan Modal */}
-      {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>Create New Plan</h3>
-              <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', color: '#A0A0A0', fontSize: '20px', cursor: 'pointer' }}>✕</button>
-            </div>
-            <input style={inputStyle} placeholder="Plan name" value={newPlan.name} onChange={e => setNewPlan({...newPlan, name: e.target.value})} onFocus={e => e.target.style.borderColor='#CCFF00'} onBlur={e => e.target.style.borderColor='#3A3A3A'} />
-            <select style={inputStyle} value={newPlan.type} onChange={e => setNewPlan({...newPlan, type: e.target.value})} onFocus={e => e.target.style.borderColor='#CCFF00'} onBlur={e => e.target.style.borderColor='#3A3A3A'}>
-              <option value="">Select plan type</option>
-              <option>Strength</option>
-              <option>Fat Loss</option>
-              <option>Hypertrophy</option>
-              <option>General Fitness</option>
-            </select>
-            <input style={inputStyle} placeholder="Number of weeks" value={newPlan.weeks} onChange={e => setNewPlan({...newPlan, weeks: e.target.value})} onFocus={e => e.target.style.borderColor='#CCFF00'} onBlur={e => e.target.style.borderColor='#3A3A3A'} />
-            <select style={inputStyle} value={newPlan.sessions} onChange={e => setNewPlan({...newPlan, sessions: e.target.value})} onFocus={e => e.target.style.borderColor='#CCFF00'} onBlur={e => e.target.style.borderColor='#3A3A3A'}>
-              <option value="">Select sessions per week</option>
-              {[1,2,3,4,5,6,7].map(n => (
-                <option key={n} value={n}>{n} session{n > 1 ? 's' : ''}/week</option>
-              ))}
-            </select>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-              <Button onClick={() => setShowModal(false)}>Create Plan</Button>
             </div>
           </div>
         </div>

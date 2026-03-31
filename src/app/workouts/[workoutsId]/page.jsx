@@ -170,20 +170,20 @@ export default function WorkoutDetailPage({ params }) {
         <Button onClick={() => router.push('/workouts')}>← Back to Workouts</Button>
       </div>
     )
-  }          
+  }
 
-  const [workout, setWorkout]                   = useState({ ...base, restDays: [] })
-  const [activeDay, setActiveDay]               = useState('Monday')
-  const [showEdit, setShowEdit]                 = useState(false)
-  const [editInfo, setEditInfo]                 = useState({ name: base.name, type: base.type, weeks: base.weeks, sessions: base.sessions, status: base.status, description: base.description })
-  const [showSessionEdit, setShowSessionEdit]   = useState(false)
-  const [sessionDay, setSessionDay]             = useState(null)
+  const [workout, setWorkout] = useState({ ...base, restDays: [] })
+  const [activeDay, setActiveDay] = useState('Monday')
+  const [showEdit, setShowEdit] = useState(false)
+  const [editInfo, setEditInfo] = useState({ name: base.name, type: base.type, weeks: base.weeks, sessions: base.sessions, status: base.status, description: base.description })
+  const [showSessionEdit, setShowSessionEdit] = useState(false)
+  const [sessionDay, setSessionDay] = useState(null)
   const [sessionExercises, setSessionExercises] = useState([])
-  const [showExPicker, setShowExPicker]         = useState(false)
-  const [exSearch, setExSearch]                 = useState('')
-  const [muscleFilter, setMuscleFilter]         = useState('All')
+  const [showExPicker, setShowExPicker] = useState(false)
+  const [exSearch, setExSearch] = useState('')
+  const [muscleFilter, setMuscleFilter] = useState('All')
   const [showClientPicker, setShowClientPicker] = useState(false)
-  const [selectedClients, setSelectedClients]   = useState([])
+  const [selectedClients, setSelectedClients] = useState([])
 
   const totalExercises = Object.values(workout.schedule).reduce((sum, ex) => sum + (Array.isArray(ex) ? ex.length : 0), 0)
 
@@ -246,24 +246,148 @@ export default function WorkoutDetailPage({ params }) {
     <div style={{ width: '100%', boxSizing: 'border-box' }}>
 
       <style>{`
-        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; align-items: start; }
-        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-        .stat-card { background: #121212; border-radius: 10px; padding: 14px 16px; text-align: center; }
-        .ex-row { display: grid; grid-template-columns: 1fr 70px 70px 80px; align-items: center; padding: 12px 0; border-bottom: 1px solid #3A3A3A; font-size: 13px; gap: 8px; }
-        .ex-header { display: grid; grid-template-columns: 1fr 70px 70px 80px; padding: 6px 0 10px; font-size: 11px; color: #A0A0A0; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #3A3A3A; gap: 8px; }
-        .client-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #3A3A3A; }
-        .edit-ex-row { display: grid; grid-template-columns: 1fr 70px 70px 80px 36px; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid #3A3A3A; }
-        .edit-ex-header { display: grid; grid-template-columns: 1fr 70px 70px 80px 36px; padding: 6px 0 10px; font-size: 11px; color: #A0A0A0; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #3A3A3A; gap: 8px; }
-        .remove-btn { background: transparent; border: none; color: #A0A0A0; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .remove-btn:hover { color: #FF5F1F; }
-        .ex-picker-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
-        .ex-picker-item:hover { background: #3A3A3A; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .modal { background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 16px; padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
-        @media (max-width: 768px) {
-          .detail-grid { grid-template-columns: 1fr; }
-          .stat-grid { grid-template-columns: repeat(2, 1fr); }
-        }
+        .detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: start;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.stat-card {
+  background: #121212;
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-align: center;
+}
+.ex-row {
+  display: grid;
+  grid-template-columns: 1fr 70px 70px 80px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #3A3A3A;
+  font-size: 13px;
+  gap: 8px;
+}
+.ex-header {
+  display: grid;
+  grid-template-columns: 1fr 70px 70px 80px;
+  padding: 6px 0 10px;
+  font-size: 11px;
+  color: #A0A0A0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #3A3A3A;
+  gap: 8px;
+}
+.client-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #3A3A3A;
+}
+.edit-ex-row {
+  display: grid;
+  grid-template-columns: 1fr 70px 70px 80px 36px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid #3A3A3A;
+}
+.edit-ex-header {
+  display: grid;
+  grid-template-columns: 1fr 70px 70px 80px 36px;
+  padding: 6px 0 10px;
+  font-size: 11px;
+  color: #A0A0A0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #3A3A3A;
+  gap: 8px;
+}
+.remove-btn {
+  background: transparent;
+  border: none;
+  color: #A0A0A0;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.remove-btn:hover { color: #FF5F1F; }
+.ex-picker-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ex-picker-item:hover { background: #3A3A3A; }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal {
+  background: #2C2C2C;
+  border: 1px solid #3A3A3A;
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ex-row {
+    grid-template-columns: 1fr 50px 50px 60px;
+    font-size: 12px;
+  }
+  .ex-header {
+    grid-template-columns: 1fr 50px 50px 60px;
+    font-size: 10px;
+  }
+  .edit-ex-row {
+    grid-template-columns: 1fr 50px 50px 60px 30px;
+  }
+  .edit-ex-header {
+    grid-template-columns: 1fr 50px 50px 60px 30px;
+  }
+  .modal {
+    padding: 20px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .stat-card {
+    padding: 10px 12px;
+  }
+}
       `}</style>
 
       {/* Back */}
@@ -282,10 +406,10 @@ export default function WorkoutDetailPage({ params }) {
           <p style={{ fontSize: '13px', color: '#A0A0A0', margin: '0 0 8px' }}>{workout.description}</p>
           <p style={{ fontSize: '12px', color: '#A0A0A0', margin: 0 }}>Created {workout.created}</p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <Button variant="secondary" onClick={() => setShowEdit(true)}>Edit Plan</Button>
-          <Button>Assign to Client</Button>
-        </div>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+  <Button variant="secondary" onClick={() => setShowEdit(true)}>Edit Plan</Button>
+  <Button>Assign to Client</Button>
+</div>
       </div>
 
       {/* Stats */}
@@ -311,7 +435,7 @@ export default function WorkoutDetailPage({ params }) {
           <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 16px' }}>Weekly Schedule</p>
 
           {/* All 7 Day Tabs */}
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px', overflowX: 'auto', paddingBottom: '4px' }}>
             {allDays.map(day => {
               const isRest = workout.restDays?.includes(day)
               const isActive = activeDay === day
@@ -340,7 +464,7 @@ export default function WorkoutDetailPage({ params }) {
             <p style={{ fontSize: '13px', color: '#A0A0A0', margin: 0 }}>
               {isRestDay ? 'Rest Day' : `${activeDayExercises.length} exercises`}
             </p>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <button
                 onClick={() => toggleRestDay(activeDay)}
                 style={{
