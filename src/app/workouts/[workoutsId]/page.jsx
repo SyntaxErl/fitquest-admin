@@ -407,9 +407,9 @@ export default function WorkoutDetailPage({ params }) {
           <p style={{ fontSize: '12px', color: '#A0A0A0', margin: 0 }}>Created {workout.created}</p>
         </div>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-  <Button variant="secondary" onClick={() => setShowEdit(true)}>Edit Plan</Button>
-  <Button>Assign to Client</Button>
-</div>
+          <Button variant="secondary" onClick={() => setShowEdit(true)}>Edit Plan</Button>
+          <Button>Assign to Client</Button>
+        </div>
       </div>
 
       {/* Stats */}

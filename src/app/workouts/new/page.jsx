@@ -34,6 +34,7 @@ export default function NewWorkoutPage() {
   const [showExercisePicker, setShowExercisePicker] = useState(false)
   const [exerciseSearch, setExerciseSearch] = useState('')
   const [muscleFilter, setMuscleFilter] = useState('all')
+  const [restDays, setRestDays] = useState([])
 
   const muscles = ['all', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio']
 
@@ -220,26 +221,66 @@ export default function NewWorkoutPage() {
             {/* Day Tabs */}
             <p style={{ fontSize: '13px', color: '#A0A0A0', margin: '0 0 12px' }}>Select a day to add exercises:</p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
-              {days.map(day => (
-                <button
-                  key={day}
-                  className={`day-tab ${selectedDay === day ? 'active' : ''} ${schedule[day]?.length > 0 && selectedDay !== day ? 'has-exercises' : ''}`}
-                  onClick={() => setSelectedDay(day)}
-                >{day.slice(0, 3)}</button>
-              ))}
+              {days.map(day => {
+                const isRest = restDays.includes(day)
+                const isSelected = selectedDay === day
+                return (
+                  <button
+                    key={day}
+                    onClick={() => setSelectedDay(day)}
+                    style={{
+                      padding: '8px 14px', borderRadius: '8px', fontSize: '13px',
+                      cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
+                      border: isSelected ? '1px solid #CCFF00' : '1px solid #3A3A3A',
+                      backgroundColor: isSelected ? '#CCFF00' : isRest ? '#2A1A1A' : 'transparent',
+                      color: isSelected ? '#121212' : isRest ? '#FF5F1F' : '#A0A0A0',
+                      fontWeight: isSelected ? '600' : '400',
+                    }}
+                  >
+                    {day.slice(0, 3)}
+                    {isRest && <span style={{ fontSize: '9px', marginLeft: '3px' }}>🛌</span>}
+                  </button>
+                )
+              })}
             </div>
 
             {/* Exercises for selected day */}
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                 <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>{selectedDay}</p>
-                <button
-                  onClick={() => setShowExercisePicker(true)}
-                  style={{ backgroundColor: '#CCFF00', color: '#121212', border: 'none', borderRadius: '8px', padding: '7px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
-                >+ Add Exercise</button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => {
+                      setRestDays(prev =>
+                        prev.includes(selectedDay)
+                          ? prev.filter(d => d !== selectedDay)
+                          : [...prev, selectedDay]
+                      )
+                    }}
+                    style={{
+                      backgroundColor: 'transparent',
+                      border: `1px solid ${restDays.includes(selectedDay) ? '#FF5F1F' : '#3A3A3A'}`,
+                      borderRadius: '8px', padding: '7px 14px',
+                      color: restDays.includes(selectedDay) ? '#FF5F1F' : '#A0A0A0',
+                      fontSize: '13px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s',
+                    }}
+                  >{restDays.includes(selectedDay) ? '✕ Remove Rest' : '🛌 Set Rest Day'}</button>
+                  {!restDays.includes(selectedDay) && (
+                    <button
+                      onClick={() => setShowExercisePicker(true)}
+                      style={{ backgroundColor: '#CCFF00', color: '#121212', border: 'none', borderRadius: '8px', padding: '7px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
+                    >+ Add Exercise</button>
+                  )}
+                </div>
               </div>
 
-              {!schedule[selectedDay] || schedule[selectedDay].length === 0 ? (
+              {restDays.includes(selectedDay) ? (
+                <div style={{ textAlign: 'center', padding: '30px', color: '#FF5F1F', border: '1px dashed #FF5F1F', borderRadius: '10px' }}>
+                  <p style={{ fontSize: '24px', margin: '0 0 8px' }}>🛌</p>
+                  <p style={{ fontSize: '14px', fontWeight: '600', margin: '0 0 4px' }}>Rest Day</p>
+                  <p style={{ fontSize: '12px', color: '#A0A0A0', margin: 0 }}>No training scheduled for {selectedDay}</p>
+                </div>
+              ) : !schedule[selectedDay] || schedule[selectedDay].length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '30px', color: '#A0A0A0', border: '1px dashed #3A3A3A', borderRadius: '10px' }}>
                   No exercises yet. Click "+ Add Exercise" to get started.
                 </div>

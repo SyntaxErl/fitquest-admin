@@ -264,7 +264,7 @@ export default function ClientProfilePage({ params }) {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '4px', backgroundColor: '#2C2C2C', borderRadius: '10px', padding: '4px', width: 'fit-content', marginBottom: '20px' }}>
-        {['overview', 'plan', 'history'].map(t => (
+        {['overview', 'history'].map(t => (
           <button key={t} className={`tab-btn ${activeTab === t ? 'active' : ''}`} onClick={() => setActiveTab(t)}>{t}</button>
         ))}
       </div>
@@ -321,30 +321,6 @@ export default function ClientProfilePage({ params }) {
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
-      )}
-
-      {/* PLAN */}
-      {activeTab === 'plan' && (
-        <div className="section-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-            <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>{client.currentPlan.name}</p>
-            <span style={{ fontSize: '12px', color: '#A0A0A0' }}>Week {client.currentPlan.currentWeek} / {client.currentPlan.weeks}</span>
-          </div>
-          <div className="exercise-header">
-            <span>Exercise</span><span>Sets</span><span>Reps</span><span>Weight</span><span>Logged</span>
-          </div>
-          {client.currentPlan.exercises.map((ex, i) => (
-            <div key={i} className="exercise-row">
-              <span style={{ color: '#FFFFFF', fontWeight: '500' }}>{ex.name}</span>
-              <span style={{ color: '#A0A0A0' }}>{ex.sets}</span>
-              <span style={{ color: '#A0A0A0' }}>{ex.reps}</span>
-              <span style={{ color: '#A0A0A0' }}>{ex.weight}</span>
-              <span style={{ color: ex.logged ? '#CCFF00' : '#A0A0A0', fontWeight: ex.logged ? '600' : '400', fontSize: '12px' }}>
-                {ex.logged ? '✓ Done' : 'Pending'}
-              </span>
-            </div>
-          ))}
         </div>
       )}
 
