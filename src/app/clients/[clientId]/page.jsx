@@ -247,7 +247,7 @@ export default function ClientProfilePage({ params }) {
         </div>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <Button variant="secondary" onClick={() => setShowEdit(true)}>Edit Profile</Button>
-          <Button onClick={() => { setShowAssignPlan(true); setSelectedPlan(null); setPlanSearch('') }}>Assign Plan</Button>
+          {/* <Button onClick={() => { setShowAssignPlan(true); setSelectedPlan(null); setPlanSearch('') }}>Assign Plan</Button> */}
           <button
             onClick={() => setShowDeleteConfirm(true)}
             style={{ padding: '8px 16px', backgroundColor: 'transparent', border: '1px solid #FF5F1F', borderRadius: '8px', color: '#FF5F1F', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
