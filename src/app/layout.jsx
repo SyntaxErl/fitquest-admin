@@ -1,15 +1,18 @@
+import { AuthProvider } from '@/context/AuthContext'
 import './globals.css'
 
 export const metadata = {
-  title: 'FitQuest — Coach Portal',
-  description: 'FitQuest Workout Management System for Coaches',
+  title: 'FitQuest',
+  description: 'Coach Portal — Workout Management System',
 }
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )

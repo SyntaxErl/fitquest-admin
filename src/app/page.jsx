@@ -1,20 +1,60 @@
 'use client'
 
 import { useState } from 'react'
-import Image from "next/image";
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState('')
+  const router = useRouter()
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
-    setTimeout(() => {
+    setError('')
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
+      router.push('/dashboard')
+    } catch (err) {
+      // Show friendly error messages
+      switch (err.code) {
+        case 'auth/invalid-credential':
+        case 'auth/wrong-password':
+        case 'auth/user-not-found':
+          setError('Invalid email or password. Please try again.')
+          break
+        case 'auth/too-many-requests':
+          setError('Too many failed attempts. Please try again later.')
+          break
+        case 'auth/network-request-failed':
+          setError('Network error. Check your internet connection.')
+          break
+        default:
+          setError('Something went wrong. Please try again.')
+      }
+    } finally {
       setLoading(false)
-      window.location.href = '/dashboard'
-    }, 1500)
+    }
+  }
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Enter your email address first, then click Forgot Password.')
+      return
+    }
+    try {
+      await sendPasswordResetEmail(auth, email)
+      setError('')
+      alert('Password reset email sent! Check your inbox.')
+    } catch (err) {
+      setError('Could not send reset email. Check your email address.')
+    }
   }
 
   return (
@@ -26,33 +66,25 @@ export default function LoginPage() {
       justifyContent: 'center',
       padding: '20px',
     }}>
-
-      <div style={{
-        width: '100%',
-        maxWidth: '420px',
-      }}>
+      <div style={{ width: '100%', maxWidth: '420px' }}>
 
         {/* Logo & Title */}
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-
           <div style={{ marginBottom: '16px' }}>
             <Image
-              src={"/logo.png"}
+              src="/logo.png"
               alt="FitQuest Logo"
               width={64}
               height={64}
               style={{ borderRadius: '16px' }}
             />
           </div>
-
           <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 6px' }}>
             FitQuest
           </h1>
-
           <p style={{ fontSize: '14px', color: '#A0A0A0', margin: 0 }}>
             Coach Portal — Sign in to your account
           </p>
-
         </div>
 
         {/* Login Card */}
@@ -62,6 +94,21 @@ export default function LoginPage() {
           padding: '32px',
           border: '1px solid #3A3A3A',
         }}>
+
+          {/* Error Message */}
+          {error && (
+            <div style={{
+              backgroundColor: '#3A1A1A',
+              border: '1px solid #FF5F1F',
+              borderRadius: '8px',
+              padding: '12px 14px',
+              marginBottom: '20px',
+            }}>
+              <p style={{ fontSize: '13px', color: '#FF5F1F', margin: 0 }}>
+                ⚠️ {error}
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleLogin}>
 
@@ -91,6 +138,7 @@ export default function LoginPage() {
                   padding: '12px 14px',
                   fontSize: '14px',
                   outline: 'none',
+                  boxSizing: 'border-box',
                 }}
                 onFocus={e => e.target.style.borderColor = '#CCFF00'}
                 onBlur={e => e.target.style.borderColor = '#3A3A3A'}
@@ -103,9 +151,20 @@ export default function LoginPage() {
                 <label style={{ fontSize: '13px', fontWeight: '500', color: '#A0A0A0' }}>
                   Password
                 </label>
-                <a href="#" style={{ fontSize: '13px', color: '#CCFF00', textDecoration: 'none' }}>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  style={{
+                    fontSize: '13px',
+                    color: '#CCFF00',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
               <input
                 type="password"
@@ -122,6 +181,7 @@ export default function LoginPage() {
                   padding: '12px 14px',
                   fontSize: '14px',
                   outline: 'none',
+                  boxSizing: 'border-box',
                 }}
                 onFocus={e => e.target.style.borderColor = '#CCFF00'}
                 onBlur={e => e.target.style.borderColor = '#3A3A3A'}
