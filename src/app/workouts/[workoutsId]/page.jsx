@@ -9,36 +9,36 @@ import Badge from '@/components/ui/badge'
 import Button from '@/components/ui/button'
 import Avatar from '@/components/ui/avatar'
 
-const allDays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 const typeColors = {
   'Strength': '#CCFF00', 'Fat Loss': '#FF5F1F',
   'Hypertrophy': '#60AFFF', 'General Fitness': '#A78BFA',
 }
 
-const muscles = ['All','Chest','Back','Legs','Shoulders','Arms','Core','Cardio','Full Body']
+const muscles = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio', 'Full Body']
 
 const exerciseLibrary = [
-  { name: 'Barbell Squat',    muscle: 'Legs',      equipment: 'Barbell' },
-  { name: 'Bench Press',      muscle: 'Chest',     equipment: 'Barbell' },
-  { name: 'Deadlift',         muscle: 'Back',      equipment: 'Barbell' },
-  { name: 'OHP',              muscle: 'Shoulders', equipment: 'Barbell' },
-  { name: 'Pull Ups',         muscle: 'Back',      equipment: 'Bodyweight' },
-  { name: 'Dumbbell Curl',    muscle: 'Arms',      equipment: 'Dumbbell' },
-  { name: 'Tricep Pushdown',  muscle: 'Arms',      equipment: 'Cable' },
-  { name: 'Leg Press',        muscle: 'Legs',      equipment: 'Machine' },
-  { name: 'Lat Pulldown',     muscle: 'Back',      equipment: 'Cable' },
-  { name: 'Cable Row',        muscle: 'Back',      equipment: 'Cable' },
-  { name: 'Incline Press',    muscle: 'Chest',     equipment: 'Dumbbell' },
-  { name: 'Leg Curl',         muscle: 'Legs',      equipment: 'Machine' },
-  { name: 'Plank',            muscle: 'Core',      equipment: 'Bodyweight' },
-  { name: 'Treadmill Run',    muscle: 'Cardio',    equipment: 'Machine' },
-  { name: 'Jump Rope',        muscle: 'Cardio',    equipment: 'Bodyweight' },
-  { name: 'Burpees',          muscle: 'Full Body', equipment: 'Bodyweight' },
-  { name: 'Mountain Climbers',muscle: 'Core',      equipment: 'Bodyweight' },
-  { name: 'Dumbbell Row',     muscle: 'Back',      equipment: 'Dumbbell' },
-  { name: 'Goblet Squat',     muscle: 'Legs',      equipment: 'Dumbbell' },
-  { name: 'Face Pull',        muscle: 'Shoulders', equipment: 'Cable' },
+  { name: 'Barbell Squat', muscle: 'Legs', equipment: 'Barbell' },
+  { name: 'Bench Press', muscle: 'Chest', equipment: 'Barbell' },
+  { name: 'Deadlift', muscle: 'Back', equipment: 'Barbell' },
+  { name: 'OHP', muscle: 'Shoulders', equipment: 'Barbell' },
+  { name: 'Pull Ups', muscle: 'Back', equipment: 'Bodyweight' },
+  { name: 'Dumbbell Curl', muscle: 'Arms', equipment: 'Dumbbell' },
+  { name: 'Tricep Pushdown', muscle: 'Arms', equipment: 'Cable' },
+  { name: 'Leg Press', muscle: 'Legs', equipment: 'Machine' },
+  { name: 'Lat Pulldown', muscle: 'Back', equipment: 'Cable' },
+  { name: 'Cable Row', muscle: 'Back', equipment: 'Cable' },
+  { name: 'Incline Press', muscle: 'Chest', equipment: 'Dumbbell' },
+  { name: 'Leg Curl', muscle: 'Legs', equipment: 'Machine' },
+  { name: 'Plank', muscle: 'Core', equipment: 'Bodyweight' },
+  { name: 'Treadmill Run', muscle: 'Cardio', equipment: 'Machine' },
+  { name: 'Jump Rope', muscle: 'Cardio', equipment: 'Bodyweight' },
+  { name: 'Burpees', muscle: 'Full Body', equipment: 'Bodyweight' },
+  { name: 'Mountain Climbers', muscle: 'Core', equipment: 'Bodyweight' },
+  { name: 'Dumbbell Row', muscle: 'Back', equipment: 'Dumbbell' },
+  { name: 'Goblet Squat', muscle: 'Legs', equipment: 'Dumbbell' },
+  { name: 'Face Pull', muscle: 'Shoulders', equipment: 'Cable' },
 ]
 
 export default function WorkoutDetailPage({ params }) {
@@ -46,35 +46,35 @@ export default function WorkoutDetailPage({ params }) {
   const { coach } = useAuth()
   const router = useRouter()
 
-  const [plan, setPlan]               = useState(null)
-  const [schedule, setSchedule]       = useState({})
-  const [clients, setClients]         = useState([])
-  const [allClients, setAllClients]   = useState([])
-  const [loading, setLoading]         = useState(true)
-  const [activeDay, setActiveDay]     = useState('Monday')
-  const [saving, setSaving]           = useState(false)
-  const [deleting, setDeleting]       = useState(false)
+  const [plan, setPlan] = useState(null)
+  const [schedule, setSchedule] = useState({})
+  const [clients, setClients] = useState([])
+  const [allClients, setAllClients] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [activeDay, setActiveDay] = useState('Monday')
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   // Edit plan modal
-  const [showEdit, setShowEdit]       = useState(false)
-  const [editInfo, setEditInfo]       = useState({})
+  const [showEdit, setShowEdit] = useState(false)
+  const [editInfo, setEditInfo] = useState({})
 
   // Delete plan modal
   const [showDeletePlan, setShowDeletePlan] = useState(false)
 
   // Session edit modal
-  const [showSessionEdit, setShowSessionEdit]   = useState(false)
-  const [sessionDay, setSessionDay]             = useState(null)
+  const [showSessionEdit, setShowSessionEdit] = useState(false)
+  const [sessionDay, setSessionDay] = useState(null)
   const [sessionExercises, setSessionExercises] = useState([])
 
   // Exercise picker modal
-  const [showExPicker, setShowExPicker]   = useState(false)
-  const [exSearch, setExSearch]           = useState('')
-  const [muscleFilter, setMuscleFilter]   = useState('All')
+  const [showExPicker, setShowExPicker] = useState(false)
+  const [exSearch, setExSearch] = useState('')
+  const [muscleFilter, setMuscleFilter] = useState('All')
 
   // Client picker
-  const [showClientPicker, setShowClientPicker]   = useState(false)
-  const [selectedClients, setSelectedClients]     = useState([])
+  const [showClientPicker, setShowClientPicker] = useState(false)
+  const [selectedClients, setSelectedClients] = useState([])
 
   // Real-time plan listener
   useEffect(() => {
@@ -84,12 +84,12 @@ export default function WorkoutDetailPage({ params }) {
         const data = { id: snap.id, ...snap.data() }
         setPlan(data)
         setEditInfo({
-          name:            data.name            || '',
-          type:            data.type            || '',
-          weeks:           data.weeks           || '',
-          sessions:        data.sessionsPerWeek || '',
-          status:          data.status          || 'active',
-          description:     data.description     || '',
+          name: data.name || '',
+          type: data.type || '',
+          weeks: data.weeks || '',
+          sessions: data.sessionsPerWeek || '',
+          status: data.status || 'active',
+          description: data.description || '',
         })
       } else {
         router.push('/workouts')
@@ -145,13 +145,13 @@ export default function WorkoutDetailPage({ params }) {
     setSaving(true)
     try {
       await updateDoc(doc(db, 'workoutPlans', workoutsId), {
-        name:            editInfo.name,
-        type:            editInfo.type,
-        weeks:           Number(editInfo.weeks),
+        name: editInfo.name,
+        type: editInfo.type,
+        weeks: Number(editInfo.weeks),
         sessionsPerWeek: Number(editInfo.sessions),
-        status:          editInfo.status,
-        description:     editInfo.description,
-        updatedAt:       serverTimestamp(),
+        status: editInfo.status,
+        description: editInfo.description,
+        updatedAt: serverTimestamp(),
       })
       setShowEdit(false)
     } catch (err) {
@@ -207,6 +207,7 @@ export default function WorkoutDetailPage({ params }) {
     setSessionExercises(prev => prev.filter((_, i) => i !== index))
   }
 
+
   const addExerciseToSession = (ex) => {
     if (sessionExercises.find(e => e.name === ex.name)) return
     setSessionExercises(prev => [...prev, { name: ex.name, muscleGroup: ex.muscle, equipment: ex.equipment, sets: 3, reps: '10', weight: '' }])
@@ -221,12 +222,12 @@ export default function WorkoutDetailPage({ params }) {
     try {
       await updateDoc(doc(db, 'workoutPlans', workoutsId, 'schedule', dayKey), {
         exercises: sessionExercises.map(ex => ({
-          name:        ex.name,
+          name: ex.name,
           muscleGroup: ex.muscleGroup || ex.muscle || '',
-          equipment:   ex.equipment  || '',
-          sets:        Number(ex.sets),
-          reps:        ex.reps,
-          weight:      ex.weight || '',
+          equipment: ex.equipment || '',
+          sets: Number(ex.sets),
+          reps: ex.reps,
+          weight: ex.weight || '',
         })),
         isRestDay: false,
       })
@@ -248,15 +249,15 @@ export default function WorkoutDetailPage({ params }) {
     try {
       for (const client of selectedClients) {
         await updateDoc(doc(db, 'clients', client.id), {
-          assignedPlanId:   workoutsId,
+          assignedPlanId: workoutsId,
           assignedPlanName: plan.name,
-          updatedAt:        serverTimestamp(),
+          updatedAt: serverTimestamp(),
         })
       }
       // Update clientCount on plan
       await updateDoc(doc(db, 'workoutPlans', workoutsId), {
         clientCount: clients.length + selectedClients.length,
-        updatedAt:   serverTimestamp(),
+        updatedAt: serverTimestamp(),
       })
       setSelectedClients([])
       setShowClientPicker(false)
@@ -271,13 +272,13 @@ export default function WorkoutDetailPage({ params }) {
   const handleRemoveClient = async (clientId) => {
     try {
       await updateDoc(doc(db, 'clients', clientId), {
-        assignedPlanId:   null,
+        assignedPlanId: null,
         assignedPlanName: null,
-        updatedAt:        serverTimestamp(),
+        updatedAt: serverTimestamp(),
       })
       await updateDoc(doc(db, 'workoutPlans', workoutsId), {
         clientCount: Math.max(0, clients.length - 1),
-        updatedAt:   serverTimestamp(),
+        updatedAt: serverTimestamp(),
       })
     } catch (err) {
       alert('Error removing client.')
@@ -375,10 +376,10 @@ export default function WorkoutDetailPage({ params }) {
       {/* Stats */}
       <div className="stat-grid">
         {[
-          { label: 'Duration',      value: `${plan.weeks} weeks` },
+          { label: 'Duration', value: `${plan.weeks} weeks` },
           { label: 'Sessions/week', value: plan.sessionsPerWeek },
           { label: 'Total Exercises', value: totalExercises },
-          { label: 'Clients',        value: clients.length },
+          { label: 'Clients', value: clients.length },
         ].map((s, i) => (
           <div key={i} className="stat-card">
             <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</p>
@@ -397,7 +398,7 @@ export default function WorkoutDetailPage({ params }) {
           {/* Day Tabs */}
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
             {allDays.map(day => {
-              const isRest   = schedule[day]?.isRestDay || false
+              const isRest = schedule[day]?.isRestDay || false
               const isActive = activeDay === day
               return (
                 <button
@@ -601,14 +602,14 @@ export default function WorkoutDetailPage({ params }) {
               <div>
                 <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Sessions per Week</p>
                 <select style={inputStyle} value={editInfo.sessions} onChange={e => setEditInfo({ ...editInfo, sessions: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'}>
-                  {[1,2,3,4,5,6,7].map(n => <option key={n} value={n}>{n} session{n > 1 ? 's' : ''}/week</option>)}
+                  {[1, 2, 3, 4, 5, 6, 7].map(n => <option key={n} value={n}>{n} session{n > 1 ? 's' : ''}/week</option>)}
                 </select>
               </div>
             </div>
             <div style={{ marginBottom: '14px' }}>
               <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Status</p>
               <select style={inputStyle} value={editInfo.status} onChange={e => setEditInfo({ ...editInfo, status: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'}>
-                <option>active</option><option>inactive</option><option>completed</option>
+                <option>active</option><option>inactive</option>
               </select>
             </div>
             <div style={{ marginBottom: '24px' }}>

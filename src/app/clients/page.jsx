@@ -69,53 +69,7 @@ export default function ClientsPage() {
     return matchSearch && matchFilter
   })
 
-  const resetModal = () => {
-    setShowModal(false)
-    setShowPlanPicker(false)
-    setNewClient({
-      name: '', email: '', phone: '', goal: '', plan: null,
-      weight: '', height: '', bodyFat: '',
-      preference: '', allergies: '', dailyCalories: '', waterIntake: '',
-    })
-  }
-
-  const handleAddClient = async () => {
-    if (!newClient.name || !newClient.email) {
-      alert('Name and email are required.')
-      return
-    }
-    setSaving(true)
-    try {
-      await addClient(coach.uid, newClient)
-      resetModal()
-    } catch (err) {
-      alert('Error adding client. Please try again.')
-      console.error(err)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const fieldInput = (placeholder, key, type = 'text') => (
-    <input
-      type={type}
-      style={{ width: '100%', backgroundColor: '#121212', border: '1px solid #3A3A3A', borderRadius: '8px', padding: '9px 12px', color: '#FFFFFF', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
-      placeholder={placeholder}
-      value={newClient[key]}
-      onChange={e => setNewClient({ ...newClient, [key]: e.target.value })}
-      onFocus={e => e.target.style.borderColor = '#CCFF00'}
-      onBlur={e => e.target.style.borderColor = '#3A3A3A'}
-    />
-  )
-
-  const sectionLabel = (text) => (
-    <p style={{ fontSize: '11px', color: '#CCFF00', fontWeight: '600', margin: '16px 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{text}</p>
-  )
-
-  const fieldLabel = (text) => (
-    <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 6px' }}>{text}</p>
-  )
-
+  
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
@@ -159,7 +113,9 @@ export default function ClientsPage() {
           <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 4px' }}>Clients</h2>
           <p style={{ fontSize: '14px', color: '#A0A0A0', margin: 0 }}>{filtered.length} of {clients.length} clients</p>
         </div>
-        <Button onClick={() => setShowModal(true)}>+ Add Client</Button>
+        <Link href="/clients/new" style={{ textDecoration: 'none' }}>
+  <Button>+ Add Client</Button>
+</Link>
       </div>
 
       {/* Search + Filter */}
@@ -272,111 +228,6 @@ export default function ClientsPage() {
             </div>
           )
         })
-      )}
-
-      {/* Add Client Modal */}
-      {showModal && (
-        <div className="modal-overlay" onClick={resetModal}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>Add New Client</h3>
-              <button onClick={resetModal} style={{ background: 'transparent', border: 'none', color: '#A0A0A0', fontSize: '20px', cursor: 'pointer' }}>✕</button>
-            </div>
-
-            {sectionLabel('Personal Info')}
-            <div className="grid-2" style={{ marginBottom: '12px' }}>
-              <div>{fieldLabel('Full Name')}{fieldInput('e.g. Juan Dela Cruz', 'name')}</div>
-              <div>{fieldLabel('Email Address')}{fieldInput('e.g. juan@email.com', 'email', 'email')}</div>
-              <div>{fieldLabel('Phone Number')}{fieldInput('e.g. +63 912 345 6789', 'phone')}</div>
-              <div>
-                {fieldLabel('Fitness Goal')}
-                <select
-                  style={{ width: '100%', backgroundColor: '#121212', border: '1px solid #3A3A3A', borderRadius: '8px', padding: '9px 12px', color: '#FFFFFF', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
-                  value={newClient.goal}
-                  onChange={e => setNewClient({ ...newClient, goal: e.target.value })}
-                  onFocus={e => e.target.style.borderColor = '#CCFF00'}
-                  onBlur={e => e.target.style.borderColor = '#3A3A3A'}
-                >
-                  <option value="">Select goal</option>
-                  <option>Strength</option>
-                  <option>Fat Loss</option>
-                  <option>Hypertrophy</option>
-                  <option>General Fitness</option>
-                </select>
-              </div>
-            </div>
-
-            {sectionLabel('Body Metrics')}
-            <div className="grid-2" style={{ marginBottom: '12px' }}>
-              <div>{fieldLabel('Weight')}{fieldInput('e.g. 75 kg', 'weight')}</div>
-              <div>{fieldLabel('Height')}{fieldInput('e.g. 175 cm', 'height')}</div>
-              <div>{fieldLabel('Body Fat %')}{fieldInput('e.g. 18%', 'bodyFat')}</div>
-            </div>
-
-            {sectionLabel('Dietary Preferences')}
-            <div className="grid-2" style={{ marginBottom: '12px' }}>
-              <div>{fieldLabel('Diet Type')}{fieldInput('e.g. High Protein', 'preference')}</div>
-              <div>{fieldLabel('Allergies')}{fieldInput('e.g. None', 'allergies')}</div>
-              <div>{fieldLabel('Daily Calories')}{fieldInput('e.g. 2800 kcal', 'dailyCalories')}</div>
-              <div>{fieldLabel('Water Intake')}{fieldInput('e.g. 3L/day', 'waterIntake')}</div>
-            </div>
-
-            {sectionLabel('Assign Workout Plan')}
-            {!showPlanPicker ? (
-              <div
-                onClick={() => setShowPlanPicker(true)}
-                style={{ backgroundColor: '#121212', border: '1px dashed #3A3A3A', borderRadius: '8px', padding: '12px 14px', marginBottom: '20px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                onMouseOver={e => e.currentTarget.style.borderColor = '#CCFF00'}
-                onMouseOut={e => e.currentTarget.style.borderColor = '#3A3A3A'}
-              >
-                {newClient.plan ? (
-                  <div>
-                    <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{newClient.plan.name}</p>
-                    <p style={{ fontSize: '12px', color: '#A0A0A0', margin: 0 }}>{newClient.plan.type} · {newClient.plan.weeks} weeks</p>
-                  </div>
-                ) : (
-                  <p style={{ fontSize: '14px', color: '#A0A0A0', margin: 0 }}>Browse workout plans...</p>
-                )}
-                <span style={{ fontSize: '12px', color: '#CCFF00', flexShrink: 0, marginLeft: '8px' }}>Browse →</span>
-              </div>
-            ) : (
-              <div style={{ backgroundColor: '#121212', border: '1px solid #3A3A3A', borderRadius: '8px', marginBottom: '20px', overflow: 'hidden' }}>
-                <div style={{ padding: '10px 14px', borderBottom: '1px solid #3A3A3A', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>Select a Plan</p>
-                  <button onClick={() => setShowPlanPicker(false)} style={{ background: 'transparent', border: 'none', color: '#A0A0A0', fontSize: '16px', cursor: 'pointer' }}>✕</button>
-                </div>
-                <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                  {plans.length === 0 ? (
-                    <p style={{ textAlign: 'center', color: '#A0A0A0', fontSize: '13px', padding: '20px' }}>No plans yet. Create a plan first.</p>
-                  ) : (
-                    plans.map(plan => (
-                      <div
-                        key={plan.id}
-                        onClick={() => { setNewClient({ ...newClient, plan }); setShowPlanPicker(false) }}
-                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', cursor: 'pointer', borderBottom: '1px solid #2A2A2A', backgroundColor: newClient.plan?.id === plan.id ? '#1E2A1A' : 'transparent' }}
-                        onMouseOver={e => e.currentTarget.style.backgroundColor = '#2C2C2C'}
-                        onMouseOut={e => e.currentTarget.style.backgroundColor = newClient.plan?.id === plan.id ? '#1E2A1A' : 'transparent'}
-                      >
-                        <div>
-                          <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 3px' }}>{plan.name}</p>
-                          <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{plan.weeks} weeks · {plan.sessionsPerWeek} sessions/wk</p>
-                        </div>
-                        <span style={{ fontSize: '11px', fontWeight: '600', color: typeColors[plan.type] || '#CCFF00' }}>{plan.type}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <Button variant="secondary" onClick={resetModal}>Cancel</Button>
-              <Button onClick={handleAddClient} disabled={saving}>
-                {saving ? 'Adding...' : 'Add Client'}
-              </Button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   )
