@@ -11,21 +11,21 @@ import Badge from '@/components/ui/badge'
 import Button from '@/components/ui/button'
 
 const typeColors = {
-  'Strength':       '#CCFF00',
-  'Fat Loss':       '#FF5F1F',
-  'Hypertrophy':    '#60AFFF',
-  'General Fitness':'#A78BFA',
+  'Strength': '#CCFF00',
+  'Fat Loss': '#FF5F1F',
+  'Hypertrophy': '#60AFFF',
+  'General Fitness': '#A78BFA',
 }
 
 export default function WorkoutsPage() {
   const router = useRouter()
   const { coach } = useAuth()
-  const [plans, setPlans]         = useState([])
-  const [loading, setLoading]     = useState(true)
-  const [search, setSearch]       = useState('')
-  const [filter, setFilter]       = useState('all')
-  const [editPlan, setEditPlan]   = useState(null)
-  const [saving, setSaving]       = useState(false)
+  const [plans, setPlans] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState('all')
+  const [editPlan, setEditPlan] = useState(null)
+  const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
 
@@ -42,7 +42,7 @@ export default function WorkoutsPage() {
 
   const filtered = plans.filter(p => {
     const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase()) ||
-                        p.type?.toLowerCase().includes(search.toLowerCase())
+      p.type?.toLowerCase().includes(search.toLowerCase())
     const matchFilter = filter === 'all' || p.status === filter
     return matchSearch && matchFilter
   })
@@ -55,11 +55,11 @@ export default function WorkoutsPage() {
     setSaving(true)
     try {
       await updateWorkoutPlan(editPlan.id, {
-        name:            editPlan.name,
-        type:            editPlan.type,
-        weeks:           Number(editPlan.weeks),
+        name: editPlan.name,
+        type: editPlan.type,
+        weeks: Number(editPlan.weeks),
         sessionsPerWeek: Number(editPlan.sessions || editPlan.sessionsPerWeek),
-        status:          editPlan.status,
+        status: editPlan.status,
       })
       setEditPlan(null)
     } catch (err) {
@@ -139,7 +139,7 @@ export default function WorkoutsPage() {
           onBlur={e => e.target.style.borderColor = '#3A3A3A'}
         />
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {['all', 'active', 'inactive', 'completed'].map(f => (
+          {['all', 'active', 'inactive'].map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -210,9 +210,9 @@ export default function WorkoutsPage() {
                 <div>
                   <Badge label={plan.status} status={plan.status} />
                 </div>
-               <div>
-  <span style={{ fontSize: '12px', color: '#CCFF00' }}>View →</span>
-</div>
+                <div>
+                  <span style={{ fontSize: '12px', color: '#CCFF00' }}>View →</span>
+                </div>
               </div>
 
               {/* Mobile Card */}
@@ -229,9 +229,9 @@ export default function WorkoutsPage() {
                 </span>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }}>
                   {[
-                    { label: 'Weeks',    value: plan.weeks },
+                    { label: 'Weeks', value: plan.weeks },
                     { label: 'Sessions', value: `${plan.sessionsPerWeek}/wk` },
-                    { label: 'Clients',  value: plan.clientCount || 0 },
+                    { label: 'Clients', value: plan.clientCount || 0 },
                   ].map((pill, i) => (
                     <div key={i} className="pill">
                       <span className="pill-label">{pill.label}</span>
@@ -273,7 +273,7 @@ export default function WorkoutsPage() {
             <input type="number" style={inputStyle} value={editPlan.weeks} onChange={e => setEditPlan({ ...editPlan, weeks: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'} />
             <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Sessions per Week</p>
             <select style={inputStyle} value={editPlan.sessions || editPlan.sessionsPerWeek} onChange={e => setEditPlan({ ...editPlan, sessions: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'}>
-              {[1,2,3,4,5,6,7].map(n => (
+              {[1, 2, 3, 4, 5, 6, 7].map(n => (
                 <option key={n} value={n}>{n} session{n > 1 ? 's' : ''}/week</option>
               ))}
             </select>
@@ -281,7 +281,7 @@ export default function WorkoutsPage() {
             <select style={inputStyle} value={editPlan.status} onChange={e => setEditPlan({ ...editPlan, status: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'}>
               <option>active</option>
               <option>inactive</option>
-              <option>completed</option>
+              {/* <option>completed</option> */}
             </select>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px' }}>
               <Button variant="secondary" onClick={() => setEditPlan(null)}>Cancel</Button>
