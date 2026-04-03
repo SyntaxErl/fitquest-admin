@@ -210,20 +210,9 @@ export default function WorkoutsPage() {
                 <div>
                   <Badge label={plan.status} status={plan.status} />
                 </div>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
-                  <button
-                    onClick={() => setEditPlan({ ...plan, sessions: plan.sessionsPerWeek })}
-                    style={{ background: 'transparent', border: '1px solid #3A3A3A', borderRadius: '6px', padding: '4px 8px', color: '#A0A0A0', fontSize: '11px', cursor: 'pointer' }}
-                    onMouseOver={e => { e.target.style.borderColor = '#CCFF00'; e.target.style.color = '#CCFF00' }}
-                    onMouseOut={e => { e.target.style.borderColor = '#3A3A3A'; e.target.style.color = '#A0A0A0' }}
-                  >Edit</button>
-                  <button
-                    onClick={() => setShowDeleteConfirm(plan)}
-                    style={{ background: 'transparent', border: '1px solid #3A3A3A', borderRadius: '6px', padding: '4px 8px', color: '#A0A0A0', fontSize: '11px', cursor: 'pointer' }}
-                    onMouseOver={e => { e.target.style.borderColor = '#FF5F1F'; e.target.style.color = '#FF5F1F' }}
-                    onMouseOut={e => { e.target.style.borderColor = '#3A3A3A'; e.target.style.color = '#A0A0A0' }}
-                  >Delete</button>
-                </div>
+               <div>
+  <span style={{ fontSize: '12px', color: '#CCFF00' }}>View →</span>
+</div>
               </div>
 
               {/* Mobile Card */}
