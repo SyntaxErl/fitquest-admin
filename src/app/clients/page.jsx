@@ -11,19 +11,19 @@ import Badge from '@/components/ui/badge'
 import Avatar from '@/components/ui/avatar'
 import Button from '@/components/ui/button'
 
-const avatarColors = ['#CCFF00','#FF5F1F','#60AFFF','#FF6B6B','#FFD700','#A78BFA','#34D399','#F472B6']
+const avatarColors = ['#CCFF00', '#FF5F1F', '#60AFFF', '#FF6B6B', '#FFD700', '#A78BFA', '#34D399', '#F472B6']
 
 
 export default function ClientsPage() {
   const { coach } = useAuth()
-  const [clients, setClients]           = useState([])
-  const [plans, setPlans]               = useState([])
-  const [loading, setLoading]           = useState(true)
-  const [search, setSearch]             = useState('')
-  const [filter, setFilter]             = useState('all')
+  const [clients, setClients] = useState([])
+  const [plans, setPlans] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState('all')
 
 
-  
+
   // Real-time clients listener
   useEffect(() => {
     if (!coach?.uid) return
@@ -52,7 +52,7 @@ export default function ClientsPage() {
 
   const filtered = clients.filter(c => {
     const matchSearch = c.name?.toLowerCase().includes(search.toLowerCase()) ||
-                        c.email?.toLowerCase().includes(search.toLowerCase())
+      c.email?.toLowerCase().includes(search.toLowerCase())
     const matchFilter = filter === 'all' || c.status === filter
     return matchSearch && matchFilter
   })
@@ -277,7 +277,9 @@ export default function ClientsPage() {
             {clients.length === 0 ? 'Add your first client to get started' : 'Try a different search or filter'}
           </p>
           {clients.length === 0 && (
-            <Button onClick={() => setShowModal(true)}>+ Add First Client</Button>
+            <Link href="/clients/new" style={{ textDecoration: 'none' }}>
+              <Button>+ Add FIrst Client</Button>
+            </Link>
           )}
         </div>
       ) : (
