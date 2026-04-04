@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
-import { doc, onSnapshot, collection, getDocs, updateDoc, deleteDoc, serverTimestamp, query, where } from 'firebase/firestore'
+import { doc, onSnapshot, collection, getDocs, updateDoc, deleteDoc, serverTimestamp, query, where, orderBy } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/context/AuthContext'
 import Badge from '@/components/ui/badge'
@@ -17,29 +17,6 @@ const typeColors = {
 }
 
 const muscles = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio', 'Full Body']
-
-const exerciseLibrary = [
-  { name: 'Barbell Squat', muscle: 'Legs', equipment: 'Barbell' },
-  { name: 'Bench Press', muscle: 'Chest', equipment: 'Barbell' },
-  { name: 'Deadlift', muscle: 'Back', equipment: 'Barbell' },
-  { name: 'OHP', muscle: 'Shoulders', equipment: 'Barbell' },
-  { name: 'Pull Ups', muscle: 'Back', equipment: 'Bodyweight' },
-  { name: 'Dumbbell Curl', muscle: 'Arms', equipment: 'Dumbbell' },
-  { name: 'Tricep Pushdown', muscle: 'Arms', equipment: 'Cable' },
-  { name: 'Leg Press', muscle: 'Legs', equipment: 'Machine' },
-  { name: 'Lat Pulldown', muscle: 'Back', equipment: 'Cable' },
-  { name: 'Cable Row', muscle: 'Back', equipment: 'Cable' },
-  { name: 'Incline Press', muscle: 'Chest', equipment: 'Dumbbell' },
-  { name: 'Leg Curl', muscle: 'Legs', equipment: 'Machine' },
-  { name: 'Plank', muscle: 'Core', equipment: 'Bodyweight' },
-  { name: 'Treadmill Run', muscle: 'Cardio', equipment: 'Machine' },
-  { name: 'Jump Rope', muscle: 'Cardio', equipment: 'Bodyweight' },
-  { name: 'Burpees', muscle: 'Full Body', equipment: 'Bodyweight' },
-  { name: 'Mountain Climbers', muscle: 'Core', equipment: 'Bodyweight' },
-  { name: 'Dumbbell Row', muscle: 'Back', equipment: 'Dumbbell' },
-  { name: 'Goblet Squat', muscle: 'Legs', equipment: 'Dumbbell' },
-  { name: 'Face Pull', muscle: 'Shoulders', equipment: 'Cable' },
-]
 
 export default function WorkoutDetailPage({ params }) {
   const { workoutsId } = use(params)
@@ -72,9 +49,23 @@ export default function WorkoutDetailPage({ params }) {
   const [exSearch, setExSearch] = useState('')
   const [muscleFilter, setMuscleFilter] = useState('All')
 
+  // Real exercise library from Firestore
+  const [exerciseLibrary, setExerciseLibrary] = useState([])
+  const [loadingExercises, setLoadingExercises] = useState(true)
+
   // Client picker
   const [showClientPicker, setShowClientPicker] = useState(false)
   const [selectedClients, setSelectedClients] = useState([])
+
+  // Real-time exercises listener
+  useEffect(() => {
+    const q = query(collection(db, 'exercises'), orderBy('createdAt', 'asc'))
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setExerciseLibrary(snapshot.docs.map(d => ({ id: d.id, ...d.data() })))
+      setLoadingExercises(false)
+    })
+    return () => unsubscribe()
+  }, [])
 
   // Real-time plan listener
   useEffect(() => {
@@ -123,8 +114,12 @@ export default function WorkoutDetailPage({ params }) {
       where('coachId', '==', coach.uid),
       where('assignedPlanId', '==', workoutsId)
     )
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setClients(snapshot.docs.map(d => ({ id: d.id, ...d.data() })))
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+      setClients(data)
+      try {
+        await updateDoc(doc(db, 'workoutPlans', workoutsId), { clientCount: data.length })
+      } catch (err) {}
     })
     return () => unsubscribe()
   }, [coach?.uid, workoutsId])
@@ -132,12 +127,11 @@ export default function WorkoutDetailPage({ params }) {
   // Load all clients for picker
   useEffect(() => {
     if (!coach?.uid) return
-    const loadAllClients = async () => {
-      const q = query(collection(db, 'clients'), where('coachId', '==', coach.uid))
-      const snapshot = await getDocs(q)
+    const q = query(collection(db, 'clients'), where('coachId', '==', coach.uid))
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       setAllClients(snapshot.docs.map(d => ({ id: d.id, ...d.data() })))
-    }
-    loadAllClients()
+    })
+    return () => unsubscribe()
   }, [coach?.uid])
 
   // Save plan edits
@@ -207,10 +201,20 @@ export default function WorkoutDetailPage({ params }) {
     setSessionExercises(prev => prev.filter((_, i) => i !== index))
   }
 
-
+  // Add exercise from picker — uses muscleGroup (Firestore field)
   const addExerciseToSession = (ex) => {
     if (sessionExercises.find(e => e.name === ex.name)) return
-    setSessionExercises(prev => [...prev, { name: ex.name, muscleGroup: ex.muscle, equipment: ex.equipment, sets: 3, reps: '10', weight: '' }])
+    setSessionExercises(prev => [
+      ...prev,
+      {
+        name:        ex.name,
+        muscleGroup: ex.muscleGroup,
+        equipment:   ex.equipment,
+        sets:        3,
+        reps:        '10',
+        weight:      '',
+      }
+    ])
     setShowExPicker(false)
   }
 
@@ -222,12 +226,12 @@ export default function WorkoutDetailPage({ params }) {
     try {
       await updateDoc(doc(db, 'workoutPlans', workoutsId, 'schedule', dayKey), {
         exercises: sessionExercises.map(ex => ({
-          name: ex.name,
-          muscleGroup: ex.muscleGroup || ex.muscle || '',
-          equipment: ex.equipment || '',
-          sets: Number(ex.sets),
-          reps: ex.reps,
-          weight: ex.weight || '',
+          name:        ex.name,
+          muscleGroup: ex.muscleGroup || '',
+          equipment:   ex.equipment || '',
+          sets:        Number(ex.sets),
+          reps:        ex.reps,
+          weight:      ex.weight || '',
         })),
         isRestDay: false,
       })
@@ -254,9 +258,11 @@ export default function WorkoutDetailPage({ params }) {
           updatedAt: serverTimestamp(),
         })
       }
-      // Update clientCount on plan
+      const newCount = clients.length + selectedClients.filter(
+        sc => !clients.find(c => c.id === sc.id)
+      ).length
       await updateDoc(doc(db, 'workoutPlans', workoutsId), {
-        clientCount: clients.length + selectedClients.length,
+        clientCount: newCount,
         updatedAt: serverTimestamp(),
       })
       setSelectedClients([])
@@ -286,8 +292,8 @@ export default function WorkoutDetailPage({ params }) {
   }
 
   const filteredExercises = exerciseLibrary.filter(e => {
-    const matchSearch = e.name.toLowerCase().includes(exSearch.toLowerCase())
-    const matchMuscle = muscleFilter === 'All' || e.muscle === muscleFilter
+    const matchSearch = e.name?.toLowerCase().includes(exSearch.toLowerCase())
+    const matchMuscle = muscleFilter === 'All' || e.muscleGroup === muscleFilter
     return matchSearch && matchMuscle
   })
 
@@ -376,10 +382,10 @@ export default function WorkoutDetailPage({ params }) {
       {/* Stats */}
       <div className="stat-grid">
         {[
-          { label: 'Duration', value: `${plan.weeks} weeks` },
-          { label: 'Sessions/week', value: plan.sessionsPerWeek },
+          { label: 'Duration',       value: `${plan.weeks} weeks` },
+          { label: 'Sessions/week',  value: plan.sessionsPerWeek },
           { label: 'Total Exercises', value: totalExercises },
-          { label: 'Clients', value: clients.length },
+          { label: 'Clients',         value: clients.length },
         ].map((s, i) => (
           <div key={i} className="stat-card">
             <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</p>
@@ -535,34 +541,66 @@ export default function WorkoutDetailPage({ params }) {
                   <button onClick={() => setShowClientPicker(false)} style={{ background: 'transparent', border: 'none', color: '#A0A0A0', fontSize: '16px', cursor: 'pointer' }}>✕</button>
                 </div>
                 <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
-                  {allClients.filter(c => c.assignedPlanId !== workoutsId).length === 0 ? (
-                    <p style={{ textAlign: 'center', color: '#A0A0A0', fontSize: '13px', padding: '20px' }}>All clients are already on this plan.</p>
-                  ) : (
-                    allClients.map((client) => {
-                      const alreadyAssigned = client.assignedPlanId === workoutsId
+                  {(() => {
+                    const availableClients = allClients.filter(c => c.assignedPlanId !== workoutsId)
+                    if (availableClients.length === 0) {
+                      return (
+                        <div style={{ padding: '24px', textAlign: 'center', color: '#A0A0A0' }}>
+                          <p style={{ fontSize: '13px', margin: '0 0 4px' }}>No available clients.</p>
+                          <p style={{ fontSize: '12px', margin: 0 }}>All clients already have an assigned plan.</p>
+                        </div>
+                      )
+                    }
+                    return availableClients.map((client) => {
                       const isSelected = selectedClients.find(c => c.id === client.id)
+                      const hasOtherPlan = client.assignedPlanId && client.assignedPlanId !== workoutsId
                       return (
                         <div
                           key={client.id}
                           onClick={() => {
-                            if (alreadyAssigned) return
-                            setSelectedClients(prev => isSelected ? prev.filter(c => c.id !== client.id) : [...prev, client])
+                            if (hasOtherPlan) return
+                            setSelectedClients(prev =>
+                              isSelected ? prev.filter(c => c.id !== client.id) : [...prev, client]
+                            )
                           }}
-                          style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', borderBottom: '1px solid #2A2A2A', cursor: alreadyAssigned ? 'not-allowed' : 'pointer', opacity: alreadyAssigned ? 0.4 : 1, backgroundColor: isSelected ? '#1E2A1A' : 'transparent' }}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '10px',
+                            padding: '12px 14px', borderBottom: '1px solid #2A2A2A',
+                            cursor: hasOtherPlan ? 'not-allowed' : 'pointer',
+                            opacity: hasOtherPlan ? 0.4 : 1,
+                            backgroundColor: isSelected ? '#1E2A1A' : 'transparent',
+                            transition: 'background 0.15s',
+                          }}
+                          onMouseOver={e => { if (!isSelected && !hasOtherPlan) e.currentTarget.style.backgroundColor = '#2A2A2A' }}
+                          onMouseOut={e => { e.currentTarget.style.backgroundColor = isSelected ? '#1E2A1A' : 'transparent' }}
                         >
-                          <div style={{ width: '18px', height: '18px', borderRadius: '4px', flexShrink: 0, backgroundColor: isSelected ? '#CCFF00' : 'transparent', border: isSelected ? '2px solid #CCFF00' : '2px solid #3A3A3A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#121212', fontWeight: '700' }}>
+                          <div style={{
+                            width: '18px', height: '18px', borderRadius: '4px', flexShrink: 0,
+                            backgroundColor: isSelected ? '#CCFF00' : hasOtherPlan ? '#2A2A2A' : 'transparent',
+                            border: isSelected ? '2px solid #CCFF00' : '2px solid #3A3A3A',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '11px', color: '#121212', fontWeight: '700',
+                          }}>
                             {isSelected ? '✓' : ''}
                           </div>
                           <Avatar name={client.name} size={32} color="#CCFF00" />
-                          <div>
+                          <div style={{ flex: 1 }}>
                             <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{client.name}</p>
-                            <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{client.goal || '—'}</p>
+                            <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>
+                              {client.goal || '—'}
+                              {hasOtherPlan && <span style={{ color: '#FF5F1F', marginLeft: '6px' }}>· Has another plan</span>}
+                            </p>
                           </div>
-                          {alreadyAssigned && <span style={{ fontSize: '11px', color: '#A0A0A0', marginLeft: 'auto' }}>Already assigned</span>}
+                          {isSelected && (
+                            <span style={{ fontSize: '11px', color: '#121212', backgroundColor: '#CCFF00', padding: '2px 8px', borderRadius: '20px', fontWeight: '700', flexShrink: 0 }}>Selected</span>
+                          )}
+                          {hasOtherPlan && (
+                            <span style={{ fontSize: '11px', color: '#FF5F1F', backgroundColor: '#3A1A1A', padding: '2px 8px', borderRadius: '20px', fontWeight: '600', border: '1px solid #FF5F1F', flexShrink: 0 }}>Has Plan</span>
+                          )}
                         </div>
                       )
                     })
-                  )}
+                  })()}
                 </div>
                 <div style={{ padding: '12px 14px', borderTop: '1px solid #3A3A3A', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                   <Button variant="secondary" onClick={() => { setShowClientPicker(false); setSelectedClients([]) }}>Cancel</Button>
@@ -666,7 +704,7 @@ export default function WorkoutDetailPage({ params }) {
                   <div key={i} className="edit-ex-row">
                     <div>
                       <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{ex.name}</p>
-                      <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{ex.muscleGroup || ex.muscle}</p>
+                      <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{ex.muscleGroup}</p>
                     </div>
                     <input style={exInputStyle} type="number" value={ex.sets} onChange={e => updateExercise(i, 'sets', e.target.value)} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'} />
                     <input style={exInputStyle} value={ex.reps} onChange={e => updateExercise(i, 'reps', e.target.value)} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'} />
@@ -710,11 +748,15 @@ export default function WorkoutDetailPage({ params }) {
               ))}
             </div>
             <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-              {filteredExercises.map((ex, i) => (
-                <div key={i} className="ex-picker-item" onClick={() => addExerciseToSession(ex)}>
+              {loadingExercises ? (
+                <p style={{ color: '#A0A0A0', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>Loading exercises...</p>
+              ) : filteredExercises.length === 0 ? (
+                <p style={{ color: '#A0A0A0', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>No exercises found</p>
+              ) : filteredExercises.map((ex) => (
+                <div key={ex.id} className="ex-picker-item" onClick={() => addExerciseToSession(ex)}>
                   <div>
                     <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{ex.name}</p>
-                    <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{ex.muscle} · {ex.equipment}</p>
+                    <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{ex.muscleGroup} · {ex.equipment}</p>
                   </div>
                   <span style={{ fontSize: '20px', color: '#CCFF00' }}>+</span>
                 </div>
