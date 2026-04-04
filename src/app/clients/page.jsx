@@ -13,12 +13,6 @@ import Button from '@/components/ui/button'
 
 const avatarColors = ['#CCFF00','#FF5F1F','#60AFFF','#FF6B6B','#FFD700','#A78BFA','#34D399','#F472B6']
 
-const typeColors = {
-  'Strength':       '#CCFF00',
-  'Fat Loss':       '#FF5F1F',
-  'Hypertrophy':    '#60AFFF',
-  'General Fitness':'#A78BFA',
-}
 
 export default function ClientsPage() {
   const { coach } = useAuth()
@@ -27,15 +21,9 @@ export default function ClientsPage() {
   const [loading, setLoading]           = useState(true)
   const [search, setSearch]             = useState('')
   const [filter, setFilter]             = useState('all')
-  const [showModal, setShowModal]       = useState(false)
-  const [showPlanPicker, setShowPlanPicker] = useState(false)
-  const [saving, setSaving]             = useState(false)
-  const [newClient, setNewClient]       = useState({
-    name: '', email: '', phone: '', goal: '', plan: null,
-    weight: '', height: '', bodyFat: '',
-    preference: '', allergies: '', dailyCalories: '', waterIntake: '',
-  })
 
+
+  
   // Real-time clients listener
   useEffect(() => {
     if (!coach?.uid) return
@@ -69,7 +57,6 @@ export default function ClientsPage() {
     return matchSearch && matchFilter
   })
 
-  
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
@@ -82,29 +69,165 @@ export default function ClientsPage() {
     <div style={{ width: '100%', boxSizing: 'border-box' }}>
 
       <style>{`
-        .clients-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-        .search-filter-row { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-        .search-input { flex: 1; min-width: 200px; background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 8px; padding: 10px 14px; color: #FFFFFF; font-size: 14px; outline: none; }
+        /* ── Header ── */
+        .clients-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 24px;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        /* ── Search + Filter row ── */
+        .search-filter-row {
+          display: flex;
+          gap: 12px;
+          margin-bottom: 20px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+        .search-input {
+          flex: 1;
+          min-width: 160px;
+          background: #2C2C2C;
+          border: 1px solid #3A3A3A;
+          border-radius: 8px;
+          padding: 10px 14px;
+          color: #FFFFFF;
+          font-size: 14px;
+          outline: none;
+        }
         .search-input:focus { border-color: #CCFF00; }
-        .filter-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid #3A3A3A; background: transparent; color: #A0A0A0; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-transform: capitalize; }
-        .filter-btn.active { background: #CCFF00; color: #121212; border-color: #CCFF00; font-weight: 600; }
-        .client-table-header { display: grid; grid-template-columns: 220px 1fr 1fr 120px 100px 90px; padding: 8px 20px; font-size: 11px; font-weight: 500; color: #A0A0A0; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-        .client-row-desktop { display: grid; grid-template-columns: 220px 1fr 1fr 120px 100px 90px; align-items: center; background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 12px; padding: 14px 20px; margin-bottom: 8px; transition: border-color 0.2s; text-decoration: none; cursor: pointer; gap: 8px; }
+        .filter-btn {
+          padding: 8px 14px;
+          border-radius: 8px;
+          border: 1px solid #3A3A3A;
+          background: transparent;
+          color: #A0A0A0;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+          text-transform: capitalize;
+          white-space: nowrap;
+        }
+        .filter-btn.active {
+          background: #CCFF00;
+          color: #121212;
+          border-color: #CCFF00;
+          font-weight: 600;
+        }
+
+        /* ── Desktop table (>= 900px) ── */
+        .client-table-header {
+          display: grid;
+          grid-template-columns: 220px 1fr 1fr 120px 100px 90px;
+          padding: 8px 20px;
+          font-size: 11px;
+          font-weight: 500;
+          color: #A0A0A0;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 6px;
+        }
+        .client-row-desktop {
+          display: grid;
+          grid-template-columns: 220px 1fr 1fr 120px 100px 90px;
+          align-items: center;
+          background: #2C2C2C;
+          border: 1px solid #3A3A3A;
+          border-radius: 12px;
+          padding: 14px 20px;
+          margin-bottom: 8px;
+          transition: border-color 0.2s;
+          text-decoration: none;
+          cursor: pointer;
+          gap: 8px;
+        }
         .client-row-desktop:hover { border-color: #CCFF00; }
+
+        /* ── Tablet row (768px – 899px): fewer columns ── */
+        .client-table-header-tablet {
+          display: none;
+          grid-template-columns: 1fr 1fr 90px;
+          padding: 8px 16px;
+          font-size: 11px;
+          font-weight: 500;
+          color: #A0A0A0;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 6px;
+        }
+        .client-row-tablet {
+          display: none;
+          grid-template-columns: 1fr 1fr 90px;
+          align-items: center;
+          background: #2C2C2C;
+          border: 1px solid #3A3A3A;
+          border-radius: 12px;
+          padding: 14px 16px;
+          margin-bottom: 8px;
+          transition: border-color 0.2s;
+          text-decoration: none;
+          cursor: pointer;
+          gap: 8px;
+        }
+        .client-row-tablet:hover { border-color: #CCFF00; }
+
+        /* ── Mobile card (< 768px) ── */
+        .client-card-mobile {
+          display: none;
+          background: #2C2C2C;
+          border: 1px solid #3A3A3A;
+          border-radius: 14px;
+          padding: 16px;
+          margin-bottom: 10px;
+          cursor: pointer;
+          transition: border-color 0.2s;
+          text-decoration: none;
+        }
+        .client-card-mobile:hover { border-color: #CCFF00; }
+
         .col-cell { display: flex; flex-direction: column; justify-content: center; }
         .col-label { font-size: 11px; color: #A0A0A0; margin-bottom: 2px; }
         .col-value { font-size: 13px; color: #FFFFFF; }
-        .client-card-mobile { display: none; background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 14px; padding: 16px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s; text-decoration: none; }
-        .client-card-mobile:hover { border-color: #CCFF00; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .modal { background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 16px; padding: 28px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+
+        .modal-overlay {
+          position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+          z-index: 50; display: flex; align-items: center;
+          justify-content: center; padding: 20px;
+        }
+        .modal {
+          background: #2C2C2C; border: 1px solid #3A3A3A;
+          border-radius: 16px; padding: 28px; width: 100%;
+          max-width: 500px; max-height: 90vh; overflow-y: auto;
+        }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
-       @media (max-width: 768px) {
-  .client-table-header { display: none; }
-  .client-row-desktop { display: none; }
-  .client-card-mobile { display: block; }
-}
-        @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        /* ── Breakpoints ── */
+        @media (max-width: 899px) {
+          /* hide full desktop table */
+          .client-table-header  { display: none; }
+          .client-row-desktop   { display: none; }
+          /* show tablet row */
+          .client-table-header-tablet { display: grid; }
+          .client-row-tablet          { display: grid; }
+        }
+
+        @media (max-width: 767px) {
+          /* hide tablet row too */
+          .client-table-header-tablet { display: none; }
+          .client-row-tablet          { display: none; }
+          /* show mobile card */
+          .client-card-mobile { display: block; }
+        }
+
+        @media (max-width: 600px) {
+          .grid-2 { grid-template-columns: 1fr; }
+          .search-filter-row { flex-direction: column; align-items: stretch; }
+          .search-input { min-width: unset; }
+        }
       `}</style>
 
       {/* Header */}
@@ -114,13 +237,18 @@ export default function ClientsPage() {
           <p style={{ fontSize: '14px', color: '#A0A0A0', margin: 0 }}>{filtered.length} of {clients.length} clients</p>
         </div>
         <Link href="/clients/new" style={{ textDecoration: 'none' }}>
-  <Button>+ Add Client</Button>
-</Link>
+          <Button>+ Add Client</Button>
+        </Link>
       </div>
 
       {/* Search + Filter */}
       <div className="search-filter-row">
-        <input className="search-input" placeholder="Search by name or email..." value={search} onChange={e => setSearch(e.target.value)} />
+        <input
+          className="search-input"
+          placeholder="Search by name or email..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {['all', 'active', 'inactive', 'completed'].map(f => (
             <button key={f} className={`filter-btn ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>{f}</button>
@@ -132,6 +260,11 @@ export default function ClientsPage() {
       <div className="client-table-header">
         <span>Client</span><span>Plan</span><span>Goal</span>
         <span>Progress</span><span>Joined</span><span>Status</span>
+      </div>
+
+      {/* Tablet Table Header */}
+      <div className="client-table-header-tablet">
+        <span>Client</span><span>Goal / Plan</span><span>Status</span>
       </div>
 
       {/* Client List */}
@@ -156,9 +289,10 @@ export default function ClientsPage() {
 
           return (
             <div key={client.id}>
-              {/* Desktop Row — hidden on mobile */}
-<Link href={`/clients/${client.id}`} style={{ textDecoration: 'none', display: 'block' }} className="desktop-only">
-  <div className="client-row-desktop">
+
+              {/* ── Desktop Row (>= 900px) ── */}
+              <Link href={`/clients/${client.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                <div className="client-row-desktop">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <Avatar name={client.name} size={40} color={avatarColors[i % avatarColors.length]} />
                     <div>
@@ -191,8 +325,31 @@ export default function ClientsPage() {
                 </div>
               </Link>
 
-             {/* Mobile Card — hidden on desktop */}
-<Link href={`/clients/${client.id}`} className="client-card-mobile" style={{ textDecoration: 'none' }}>
+              {/* ── Tablet Row (768px – 899px) ── */}
+              <Link href={`/clients/${client.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                <div className="client-row-tablet">
+                  {/* Col 1: Avatar + name + email */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Avatar name={client.name} size={38} color={avatarColors[i % avatarColors.length]} />
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.name}</p>
+                      <p style={{ fontSize: '12px', color: '#A0A0A0', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.email}</p>
+                    </div>
+                  </div>
+                  {/* Col 2: Goal + Plan stacked */}
+                  <div className="col-cell">
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF' }}>{client.goal || '—'}</span>
+                    <span style={{ fontSize: '11px', color: '#A0A0A0', marginTop: '2px' }}>{client.assignedPlanName || 'No plan'}</span>
+                  </div>
+                  {/* Col 3: Status badge */}
+                  <div className="col-cell" style={{ alignItems: 'flex-end' }}>
+                    <Badge label={client.status} status={client.status} />
+                  </div>
+                </div>
+              </Link>
+
+              {/* ── Mobile Card (< 768px) ── */}
+              <Link href={`/clients/${client.id}`} className="client-card-mobile" style={{ textDecoration: 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                   <Avatar name={client.name} size={44} color={avatarColors[i % avatarColors.length]} />
                   <div style={{ flex: 1 }}>
@@ -225,6 +382,7 @@ export default function ClientsPage() {
                   <span style={{ fontSize: '13px', color: '#CCFF00', fontWeight: '600' }}>View Profile →</span>
                 </div>
               </Link>
+
             </div>
           )
         })

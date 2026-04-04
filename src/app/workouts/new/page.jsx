@@ -1,49 +1,46 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 import { useAuth } from '@/context/AuthContext'
 import { addWorkoutPlan } from '@/lib/firestore/workoutPlans'
 import Button from '@/components/ui/button'
 
-const exerciseLibrary = [
-  { name: 'Barbell Squat',     muscle: 'Legs',      equipment: 'Barbell' },
-  { name: 'Bench Press',       muscle: 'Chest',     equipment: 'Barbell' },
-  { name: 'Deadlift',          muscle: 'Back',      equipment: 'Barbell' },
-  { name: 'OHP',               muscle: 'Shoulders', equipment: 'Barbell' },
-  { name: 'Pull Ups',          muscle: 'Back',      equipment: 'Bodyweight' },
-  { name: 'Dumbbell Curl',     muscle: 'Arms',      equipment: 'Dumbbell' },
-  { name: 'Tricep Pushdown',   muscle: 'Arms',      equipment: 'Cable' },
-  { name: 'Leg Press',         muscle: 'Legs',      equipment: 'Machine' },
-  { name: 'Lat Pulldown',      muscle: 'Back',      equipment: 'Cable' },
-  { name: 'Cable Row',         muscle: 'Back',      equipment: 'Cable' },
-  { name: 'Incline Press',     muscle: 'Chest',     equipment: 'Dumbbell' },
-  { name: 'Leg Curl',          muscle: 'Legs',      equipment: 'Machine' },
-  { name: 'Plank',             muscle: 'Core',      equipment: 'Bodyweight' },
-  { name: 'Treadmill Run',     muscle: 'Cardio',    equipment: 'Machine' },
-  { name: 'Jump Rope',         muscle: 'Cardio',    equipment: 'Bodyweight' },
-]
-
 const days    = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
-const muscles = ['all','Chest','Back','Legs','Shoulders','Arms','Core','Cardio']
+const muscles = ['all','Chest','Back','Legs','Shoulders','Arms','Core','Cardio','Full Body']
 
 export default function NewWorkoutPage() {
   const router = useRouter()
   const { coach } = useAuth()
 
-  const [step, setStep]           = useState(1)
-  const [saving, setSaving]       = useState(false)
-  const [planInfo, setPlanInfo]   = useState({ name: '', type: '', weeks: '', sessions: '', description: '' })
-  const [selectedDay, setSelectedDay] = useState('Monday')
-  const [schedule, setSchedule]   = useState({})
-  const [restDays, setRestDays]   = useState([])
+  const [step, setStep]                       = useState(1)
+  const [saving, setSaving]                   = useState(false)
+  const [planInfo, setPlanInfo]               = useState({ name: '', type: '', weeks: '', sessions: '', description: '' })
+  const [selectedDay, setSelectedDay]         = useState('Monday')
+  const [schedule, setSchedule]               = useState({})
+  const [restDays, setRestDays]               = useState([])
   const [showExercisePicker, setShowExercisePicker] = useState(false)
-  const [exerciseSearch, setExerciseSearch] = useState('')
-  const [muscleFilter, setMuscleFilter]     = useState('all')
+  const [exerciseSearch, setExerciseSearch]   = useState('')
+  const [muscleFilter, setMuscleFilter]       = useState('all')
+
+  // Real exercise data from Firestore
+  const [exerciseLibrary, setExerciseLibrary]     = useState([])
+  const [loadingExercises, setLoadingExercises]   = useState(true)
+
+  useEffect(() => {
+    const q = query(collection(db, 'exercises'), orderBy('createdAt', 'asc'))
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setExerciseLibrary(snapshot.docs.map(d => ({ id: d.id, ...d.data() })))
+      setLoadingExercises(false)
+    })
+    return () => unsubscribe()
+  }, [])
 
   const filteredExercises = exerciseLibrary.filter(e => {
-    const matchSearch = e.name.toLowerCase().includes(exerciseSearch.toLowerCase())
-    const matchMuscle = muscleFilter === 'all' || e.muscle === muscleFilter
+    const matchSearch = e.name?.toLowerCase().includes(exerciseSearch.toLowerCase())
+    const matchMuscle = muscleFilter === 'all' || e.muscleGroup === muscleFilter
     return matchSearch && matchMuscle
   })
 
@@ -51,7 +48,13 @@ export default function NewWorkoutPage() {
     setSchedule(prev => {
       const dayExercises = prev[selectedDay] || []
       if (dayExercises.find(e => e.name === exercise.name)) return prev
-      return { ...prev, [selectedDay]: [...dayExercises, { ...exercise, sets: 3, reps: '10', weight: '' }] }
+      return {
+        ...prev,
+        [selectedDay]: [
+          ...dayExercises,
+          { ...exercise, sets: 3, reps: '10', weight: '' }
+        ]
+      }
     })
     setShowExercisePicker(false)
   }
@@ -75,24 +78,23 @@ export default function NewWorkoutPage() {
     try {
       const planId = await addWorkoutPlan(coach.uid, planInfo)
 
-      // Save schedule to subcollection
       const { doc, setDoc } = await import('firebase/firestore')
       const { db } = await import('@/lib/firebase')
 
       for (const day of days) {
-        const dayKey = day.toLowerCase()
-        const isRest = restDays.includes(day)
+        const dayKey    = day.toLowerCase()
+        const isRest    = restDays.includes(day)
         const exercises = schedule[day] || []
         await setDoc(doc(db, 'workoutPlans', planId, 'schedule', dayKey), {
           day: dayKey,
           isRestDay: isRest,
           exercises: exercises.map(ex => ({
-            name:      ex.name,
-            muscleGroup: ex.muscle,
-            equipment: ex.equipment,
-            sets:      Number(ex.sets),
-            reps:      ex.reps,
-            weight:    ex.weight || '',
+            name:        ex.name,
+            muscleGroup: ex.muscleGroup,
+            equipment:   ex.equipment,
+            sets:        Number(ex.sets),
+            reps:        ex.reps,
+            weight:      ex.weight || '',
           })),
         })
       }
@@ -288,7 +290,7 @@ export default function NewWorkoutPage() {
                     <div key={i} className="ex-row">
                       <div>
                         <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{ex.name}</p>
-                        <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{ex.muscle} · {ex.equipment}</p>
+                        <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{ex.muscleGroup} · {ex.equipment}</p>
                       </div>
                       <input className="ex-input" type="number" value={ex.sets} onChange={e => updateExercise(selectedDay, i, 'sets', e.target.value)} />
                       <input className="ex-input" value={ex.reps} onChange={e => updateExercise(selectedDay, i, 'reps', e.target.value)} />
@@ -382,11 +384,15 @@ export default function NewWorkoutPage() {
               ))}
             </div>
             <div>
-              {filteredExercises.map((ex, i) => (
-                <div key={i} className="exercise-picker-item" onClick={() => addExercise(ex)}>
+              {loadingExercises ? (
+                <p style={{ color: '#A0A0A0', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>Loading exercises...</p>
+              ) : filteredExercises.length === 0 ? (
+                <p style={{ color: '#A0A0A0', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>No exercises found</p>
+              ) : filteredExercises.map((ex) => (
+                <div key={ex.id} className="exercise-picker-item" onClick={() => addExercise(ex)}>
                   <div>
                     <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{ex.name}</p>
-                    <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{ex.muscle} · {ex.equipment}</p>
+                    <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{ex.muscleGroup} · {ex.equipment}</p>
                   </div>
                   <span style={{ fontSize: '20px', color: '#CCFF00' }}>+</span>
                 </div>
