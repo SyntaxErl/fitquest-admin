@@ -11,7 +11,7 @@ export default function ExercisesLayout({ children }) {
     <div style={{ display: 'flex', backgroundColor: '#121212', minHeight: '100vh' }}>
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }} className="main-content">
-        <Navbar title="Exercise Library" onMenuClick={() => setSidebarOpen(true)} />
+        <Navbar title="Exercises" onMenuClick={() => setSidebarOpen(true)} />
         <main style={{ padding: '24px', flex: 1, width: '100%', boxSizing: 'border-box' }}>
           {children}
         </main>

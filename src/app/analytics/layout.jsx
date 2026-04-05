@@ -11,7 +11,7 @@ export default function AnalyticsLayout({ children }) {
     <div style={{ display: 'flex', backgroundColor: '#121212', minHeight: '100vh' }}>
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }} className="main-content">
-        <Navbar title="Analytics & Reports" onMenuClick={() => setSidebarOpen(true)} />
+        <Navbar title="Analytics" onMenuClick={() => setSidebarOpen(true)} />
         <main style={{ padding: '24px', flex: 1, width: '100%', boxSizing: 'border-box' }}>
           {children}
         </main>

@@ -494,7 +494,7 @@ export default function WorkoutDetailPage({ params }) {
           ) : (
             clients.map((client) => (
               <div key={client.id} className="client-row">
-                <Avatar name={client.name} size={38} color="#CCFF00" />
+                <Avatar name={client.name} size={38} color={client.avatarColor || '#CCFF00'} />
                 <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => router.push('/clients/' + client.id)}>
                   <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 5px' }}>{client.name}</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -583,7 +583,7 @@ export default function WorkoutDetailPage({ params }) {
                           }}>
                             {isSelected ? '✓' : ''}
                           </div>
-                          <Avatar name={client.name} size={32} color="#CCFF00" />
+                          <Avatar name={client.name} size={32} color={client.avatarColor || '#CCFF00'} />
                           <div style={{ flex: 1 }}>
                             <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{client.name}</p>
                             <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>

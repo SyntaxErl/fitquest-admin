@@ -303,8 +303,9 @@ export default function AnalyticsPage() {
           <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 4px' }}>Weekly Session Activity</p>
           <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 20px' }}>Scheduled vs completed sessions</p>
           {sessions.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#A0A0A0' }}>
+            <div style={{ textAlign: 'center', padding: '40px', color: '#A0A0A0' }}> 
               <p style={{ fontSize: '13px', margin: 0 }}>No session data yet</p>
+              <p style={{ color: '#A0A0A0', fontSize: '12px', margin: 0 }}>Sessions will appear here as trainees log workouts</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>

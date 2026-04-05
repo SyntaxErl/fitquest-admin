@@ -121,7 +121,7 @@ export default function WorkoutsPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 4px' }}>Workout Plans</h2>
-          <p style={{ fontSize: '14px', color: '#A0A0A0', margin: 0 }}>{filtered.length} of {plans.length} plans</p>
+          <p style={{ fontSize: '14px', color: '#A0A0A0', margin: 0 }}>Total Plans: {filtered.length}</p>
         </div>
         <Link href="/workouts/new" style={{ textDecoration: 'none' }}>
           <Button>+ Create Plan</Button>
