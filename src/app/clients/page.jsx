@@ -10,6 +10,7 @@ import { collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 import Badge from '@/components/ui/badge'
 import Avatar from '@/components/ui/avatar'
 import Button from '@/components/ui/button'
+import { runAutoStatusCheck } from '@/lib/firestore/autoStatus'
 
 const avatarColors = ['#CCFF00', '#FF5F1F', '#60AFFF', '#FF6B6B', '#FFD700', '#A78BFA', '#34D399', '#F472B6']
 
@@ -22,7 +23,11 @@ export default function ClientsPage() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
 
-
+// Run auto-status check when viewing clients
+useEffect(() => {
+  if (!coach?.uid) return
+  runAutoStatusCheck(coach.uid)
+}, [coach?.uid])
 
   // Real-time clients listener
   useEffect(() => {
@@ -234,7 +239,7 @@ export default function ClientsPage() {
       <div className="clients-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 4px' }}>Clients</h2>
-          <p style={{ fontSize: '14px', color: '#A0A0A0', margin: 0 }}>{filtered.length} of {clients.length} clients</p>
+          <p style={{ fontSize: '14px', color: '#A0A0A0', margin: 0 }}>Total Clients: {clients.length}</p>
         </div>
         <Link href="/clients/new" style={{ textDecoration: 'none' }}>
           <Button>+ Add Client</Button>
@@ -296,7 +301,7 @@ export default function ClientsPage() {
               <Link href={`/clients/${client.id}`} style={{ textDecoration: 'none', display: 'block' }}>
                 <div className="client-row-desktop">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Avatar name={client.name} size={40} color={avatarColors[i % avatarColors.length]} />
+                    <Avatar name={client.name} size={40} color={client.avatarColor || avatarColors[i % avatarColors.length]} />
                     <div>
                       <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{client.name}</p>
                       <p style={{ fontSize: '12px', color: '#A0A0A0', margin: 0 }}>{client.email}</p>
@@ -332,7 +337,7 @@ export default function ClientsPage() {
                 <div className="client-row-tablet">
                   {/* Col 1: Avatar + name + email */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Avatar name={client.name} size={38} color={avatarColors[i % avatarColors.length]} />
+                    <Avatar name={client.name} size={44} color={client.avatarColor || avatarColors[i % avatarColors.length]} />
                     <div style={{ minWidth: 0 }}>
                       <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.name}</p>
                       <p style={{ fontSize: '12px', color: '#A0A0A0', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{client.email}</p>
@@ -353,7 +358,7 @@ export default function ClientsPage() {
               {/* ── Mobile Card (< 768px) ── */}
               <Link href={`/clients/${client.id}`} className="client-card-mobile" style={{ textDecoration: 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                  <Avatar name={client.name} size={44} color={avatarColors[i % avatarColors.length]} />
+                  <Avatar name={client.name} size={44} color={client.avatarColor || avatarColors[i % avatarColors.length]} />
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: '15px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 2px' }}>{client.name}</p>
                     <p style={{ fontSize: '12px', color: '#A0A0A0', margin: 0 }}>{client.email}</p>

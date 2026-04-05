@@ -8,6 +8,7 @@ import StatCard from '@/components/ui/statCard'
 import ProgressChart from '@/components/charts/progressChart'
 import ActivityChart from '@/components/charts/activityChart'
 import Link from 'next/link'
+import { runAutoStatusCheck } from '@/lib/firestore/autoStatus'
 
 export default function DashboardPage() {
   const { coach } = useAuth()
@@ -16,6 +17,12 @@ export default function DashboardPage() {
   const [sessions, setSessions]         = useState([])
   const [recentClients, setRecentClients] = useState([])
   const [loading, setLoading]           = useState(true)
+
+  // Run auto-status check on dashboard load
+useEffect(() => {
+  if (!coach?.uid) return
+  runAutoStatusCheck(coach.uid)
+}, [coach?.uid])
 
   // Real-time clients listener
   useEffect(() => {

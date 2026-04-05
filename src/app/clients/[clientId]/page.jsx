@@ -230,7 +230,7 @@ export default function ClientProfilePage({ params }) {
 
       {/* Profile Header */}
       <div className="section-card" style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', marginBottom: '16px' }}>
-        <Avatar name={client.name} size={64} color="#CCFF00" />
+        <Avatar name={client.name} size={64} color={client.avatarColor || '#CCFF00'} />
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '4px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>{client.name}</h2>
