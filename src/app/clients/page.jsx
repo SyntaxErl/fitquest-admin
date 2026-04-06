@@ -10,7 +10,6 @@ import { collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 import Badge from '@/components/ui/badge'
 import Avatar from '@/components/ui/avatar'
 import Button from '@/components/ui/button'
-import { runAutoStatusCheck } from '@/lib/firestore/autoStatus'
 
 const avatarColors = ['#CCFF00', '#FF5F1F', '#60AFFF', '#FF6B6B', '#FFD700', '#A78BFA', '#34D399', '#F472B6']
 
@@ -23,11 +22,6 @@ export default function ClientsPage() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
 
-// Run auto-status check when viewing clients
-useEffect(() => {
-  if (!coach?.uid) return
-  runAutoStatusCheck(coach.uid)
-}, [coach?.uid])
 
   // Real-time clients listener
   useEffect(() => {

@@ -6,11 +6,11 @@ import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
 
 const navLinks = [
-  { href: '/dashboard', label: 'Dashboard', icon: '▣' },
-  { href: '/clients',   label: 'Clients',   icon: '👤' },
-  { href: '/workouts',  label: 'Workouts',  icon: '💪' },
-  { href: '/exercises', label: 'Exercises', icon: '📋' },
-  { href: '/analytics', label: 'Analytics', icon: '📊' },
+  { href: '/dashboard', label: 'Dashboard', icon: <Image src="/dashboard.svg" alt="workouts icon" width={30} height={30} /> },
+  { href: '/clients', label: 'Clients', icon: <Image src="/clients.svg" alt="clients icon" width={35} height={26} /> },
+  { href: '/workouts', label: 'Workouts', icon: <Image src="/workouts.svg" alt="workouts icon" width={30} height={30} /> },
+  { href: '/exercises', label: 'Exercises', icon: <Image src="exercises.svg" alt="exercises icon" width={30} height={30} /> },
+  { href: '/analytics', label: 'Analytics', icon: <Image src="/analytics.svg" alt="analytics icon" width={26} height={26} style={{ borderRadius: '30%' }} /> },
 ]
 
 export default function Sidebar({ isOpen, onClose }) {
