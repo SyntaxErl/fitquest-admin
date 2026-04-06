@@ -7,20 +7,40 @@ import { useAuth } from '@/context/AuthContext'
 import { addExercise, deleteExercise, exercisesQuery } from '@/lib/firestore/exercises'
 import Button from '@/components/ui/button'
 
-const muscles    = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio', 'Full Body']
+const muscles = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio', 'Full Body']
 const equipments = ['All', 'Barbell', 'Dumbbell', 'Cable', 'Machine', 'Bodyweight']
 const difficulties = ['All', 'Beginner', 'Intermediate', 'Advanced']
 const categories = ['All', 'Compound', 'Isolation', 'Cardio']
 
 const difficultyColors = {
-  Beginner:     { bg: '#1A3A1A', color: '#CCFF00', border: '#2A5A2A' },
+  Beginner: { bg: '#1A3A1A', color: '#CCFF00', border: '#2A5A2A' },
   Intermediate: { bg: '#1A2A3A', color: '#60AFFF', border: '#2A4A6A' },
-  Advanced:     { bg: '#3A1A1A', color: '#FF5F1F', border: '#5A2A2A' },
+  Advanced: { bg: '#3A1A1A', color: '#FF5F1F', border: '#5A2A2A' },
 }
 
 const muscleIcons = {
-  Chest: '🫁', Back: '🔙', Legs: '🦵', Shoulders: '💪',
-  Arms: '💪', Core: '⚡', Cardio: '❤️', 'Full Body': '🏋️',
+  Chest: '/icons/chest.png',
+  Back: '/icons/back.png',
+  Legs: '/icons/legs.png',
+  Shoulders: '/icons/shoulders.png',
+  Arms: '/icons/arms.png',
+  Core: '/icons/core.png',
+  Cardio: '/icons/cardio.png',
+  'Full Body': '/icons/full-body.png',
+}
+
+const MuscleIcon = ({ muscleGroup, size = 32 }) => {
+  const src = muscleIcons[muscleGroup]
+  if (!src) return null
+  return (
+    <img
+      src={src}
+      alt={muscleGroup}
+      width={size}
+      height={size}
+      style={{ objectFit: 'contain', display: 'block' }}
+    />
+  )
 }
 
 const FilterRow = ({ label, options, value, onChange }) => (
@@ -46,31 +66,31 @@ const FilterRow = ({ label, options, value, onChange }) => (
 
 export default function ExercisesPage() {
   const { coach } = useAuth()
-  const [exercises, setExercises]               = useState([])
-  const [loading, setLoading]                   = useState(true)
-  const [search, setSearch]                     = useState('')
-  const [muscleFilter, setMuscleFilter]         = useState('All')
-  const [equipmentFilter, setEquipmentFilter]   = useState('All')
+  const [exercises, setExercises] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [muscleFilter, setMuscleFilter] = useState('All')
+  const [equipmentFilter, setEquipmentFilter] = useState('All')
   const [difficultyFilter, setDifficultyFilter] = useState('All')
-  const [categoryFilter, setCategoryFilter]     = useState('All')
+  const [categoryFilter, setCategoryFilter] = useState('All')
   const [selectedExercise, setSelectedExercise] = useState(null)
-  const [showAddModal, setShowAddModal]         = useState(false)
+  const [showAddModal, setShowAddModal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
-  const [saving, setSaving]                     = useState(false)
-  const [deleting, setDeleting]                 = useState(false)
-  const [view, setView]                         = useState('grid')
-  const [newExercise, setNewExercise]           = useState({
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [view, setView] = useState('grid')
+  const [newExercise, setNewExercise] = useState({
     name: '', muscleGroup: '', equipment: '',
     difficulty: '', category: '', description: '',
   })
 
   // Plan picker state
-  const [plans, setPlans]                   = useState([])
+  const [plans, setPlans] = useState([])
   const [showPlanPicker, setShowPlanPicker] = useState(false)
-  const [selectedPlan, setSelectedPlan]     = useState(null)
-  const [selectedDay, setSelectedDay]       = useState('')
-  const [addingToPlan, setAddingToPlan]     = useState(false)
-  const [successMsg, setSuccessMsg]         = useState('')
+  const [selectedPlan, setSelectedPlan] = useState(null)
+  const [selectedDay, setSelectedDay] = useState('')
+  const [addingToPlan, setAddingToPlan] = useState(false)
+  const [successMsg, setSuccessMsg] = useState('')
 
   // Real-time exercises listener
   useEffect(() => {
@@ -97,11 +117,11 @@ export default function ExercisesPage() {
   }, [coach?.uid])
 
   const filtered = exercises.filter(e => {
-    const matchSearch     = e.name?.toLowerCase().includes(search.toLowerCase())
-    const matchMuscle     = muscleFilter === 'All'     || e.muscleGroup === muscleFilter
-    const matchEquipment  = equipmentFilter === 'All'  || e.equipment === equipmentFilter
+    const matchSearch = e.name?.toLowerCase().includes(search.toLowerCase())
+    const matchMuscle = muscleFilter === 'All' || e.muscleGroup === muscleFilter
+    const matchEquipment = equipmentFilter === 'All' || e.equipment === equipmentFilter
     const matchDifficulty = difficultyFilter === 'All' || e.difficulty === difficultyFilter
-    const matchCategory   = categoryFilter === 'All'   || e.category === categoryFilter
+    const matchCategory = categoryFilter === 'All' || e.category === categoryFilter
     return matchSearch && matchMuscle && matchEquipment && matchDifficulty && matchCategory
   })
 
@@ -171,12 +191,12 @@ export default function ExercisesPage() {
         exercises: [
           ...currentExercises,
           {
-            name:        selectedExercise.name,
+            name: selectedExercise.name,
             muscleGroup: selectedExercise.muscleGroup,
-            equipment:   selectedExercise.equipment,
-            sets:        3,
-            reps:        '10',
-            weight:      '',
+            equipment: selectedExercise.equipment,
+            sets: 3,
+            reps: '10',
+            weight: '',
           }
         ],
         isRestDay: false,
@@ -227,8 +247,8 @@ export default function ExercisesPage() {
         .exercise-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
         .exercise-card { background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 14px; padding: 18px; cursor: pointer; transition: border-color 0.2s; }
         .exercise-card:hover { border-color: #CCFF00; }
-        .exercise-list-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 100px; align-items: center; padding: 6px 20px; font-size: 11px; color: #A0A0A0; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; gap: 12px; }
-        .exercise-list-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 100px; align-items: center; background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 12px; padding: 14px 20px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.2s; gap: 12px; }
+        .exercise-list-header { display: grid; grid-template-columns: 2fr 1fr 1fr 120px 120px; align-items: center; padding: 6px 20px; font-size: 11px; color: #A0A0A0; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; gap: 12px; }
+        .exercise-list-row { display: grid; grid-template-columns: 2fr 1fr 1fr 120px 120px; align-items: center; background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 12px; padding: 14px 20px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.2s; gap: 12px; }
         .exercise-list-row:hover { border-color: #CCFF00; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .modal { background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 16px; padding: 28px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
@@ -239,7 +259,9 @@ export default function ExercisesPage() {
         @media (max-width: 600px) {
           .exercise-grid { grid-template-columns: 1fr; }
           .exercise-list-header { display: none; }
-          .exercise-list-row { grid-template-columns: 1fr 1fr; }
+          .exercise-list-row { display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
+          .list-col-hide { display: none !important; }
+          .list-mobile-meta { display: flex !important; }
         }
       `}</style>
 
@@ -270,10 +292,10 @@ export default function ExercisesPage() {
 
       {/* Filters */}
       <div className="filter-panel">
-        <FilterRow label="Muscle Group" options={muscles}     value={muscleFilter}     onChange={setMuscleFilter} />
-        <FilterRow label="Equipment"    options={equipments}  value={equipmentFilter}  onChange={setEquipmentFilter} />
-        <FilterRow label="Difficulty"   options={difficulties} value={difficultyFilter} onChange={setDifficultyFilter} />
-        <FilterRow label="Category"     options={categories}  value={categoryFilter}   onChange={setCategoryFilter} />
+        <FilterRow label="Muscle Group" options={muscles} value={muscleFilter} onChange={setMuscleFilter} />
+        <FilterRow label="Equipment" options={equipments} value={equipmentFilter} onChange={setEquipmentFilter} />
+        <FilterRow label="Difficulty" options={difficulties} value={difficultyFilter} onChange={setDifficultyFilter} />
+        <FilterRow label="Category" options={categories} value={categoryFilter} onChange={setCategoryFilter} />
         <button
           onClick={clearFilters}
           style={{ fontSize: '12px', color: '#FF5F1F', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
@@ -297,7 +319,10 @@ export default function ExercisesPage() {
             return (
               <div key={ex.id} className="exercise-card" onClick={() => setSelectedExercise(ex)}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '24px' }}>{muscleIcons[ex.muscleGroup] || '💪'}</span>
+                  {/* Muscle group icon */}
+                  <div style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <MuscleIcon muscleGroup={ex.muscleGroup} size={32} />
+                  </div>
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                     {ex.isCustom && (
                       <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '10px', backgroundColor: '#2A1A3A', color: '#A78BFA', border: '1px solid #A78BFA' }}>Custom</span>
@@ -329,17 +354,25 @@ export default function ExercisesPage() {
             const diff = difficultyColors[ex.difficulty] || difficultyColors.Beginner
             return (
               <div key={ex.id} className="exercise-list-row" onClick={() => setSelectedExercise(ex)}>
+                {/* Name + description (always visible) */}
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{ex.name}</p>
                     {ex.isCustom && <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '10px', backgroundColor: '#2A1A3A', color: '#A78BFA', border: '1px solid #A78BFA' }}>Custom</span>}
                   </div>
-                  <p style={{ fontSize: '12px', color: '#A0A0A0', margin: 0 }}>{ex.description?.slice(0, 60)}...</p>
+                  <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 0' }}>{ex.description?.slice(0, 60)}...</p>
+                  {/* Mobile-only inline meta */}
+                  <div className="list-mobile-meta" style={{ display: 'none', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                    <span style={{ fontSize: '12px', color: '#A0A0A0' }}>{ex.muscleGroup} · {ex.equipment}</span>
+                    <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', backgroundColor: '#121212', color: '#A0A0A0', border: '1px solid #3A3A3A' }}>{ex.category}</span>
+                    <span style={{ fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '20px', backgroundColor: diff.bg, color: diff.color, border: `1px solid ${diff.border}` }}>{ex.difficulty}</span>
+                  </div>
                 </div>
-                <span style={{ fontSize: '13px', color: '#FFFFFF' }}>{ex.muscleGroup}</span>
-                <span style={{ fontSize: '13px', color: '#A0A0A0' }}>{ex.equipment}</span>
-                <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '20px', backgroundColor: '#121212', color: '#A0A0A0', border: '1px solid #3A3A3A', whiteSpace: 'nowrap' }}>{ex.category}</span>
-                <span style={{ fontSize: '11px', fontWeight: '600', padding: '3px 8px', borderRadius: '20px', backgroundColor: diff.bg, color: diff.color, border: `1px solid ${diff.border}`, whiteSpace: 'nowrap' }}>{ex.difficulty}</span>
+                {/* Desktop-only columns */}
+                <span className="list-col-hide" style={{ fontSize: '13px', color: '#FFFFFF' }}>{ex.muscleGroup}</span>
+                <span className="list-col-hide" style={{ fontSize: '13px', color: '#A0A0A0' }}>{ex.equipment}</span>
+                <span className="list-col-hide" style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '20px', backgroundColor: '#121212', color: '#A0A0A0', border: '1px solid #3A3A3A', whiteSpace: 'nowrap', width: 'fit-content', display: 'inline-block' }}>{ex.category}</span>
+                <span className="list-col-hide" style={{ fontSize: '11px', fontWeight: '600', padding: '3px 8px', borderRadius: '20px', backgroundColor: diff.bg, color: diff.color, border: `1px solid ${diff.border}`, whiteSpace: 'nowrap', width: 'fit-content', display: 'inline-block' }}>{ex.difficulty}</span>
               </div>
             )
           })}
@@ -355,7 +388,9 @@ export default function ExercisesPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '28px' }}>{muscleIcons[selectedExercise.muscleGroup] || '💪'}</span>
+                  <div style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <MuscleIcon muscleGroup={selectedExercise.muscleGroup} size={32} />
+                  </div>
                   <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>{selectedExercise.name}</h3>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -378,13 +413,18 @@ export default function ExercisesPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
               {[
                 { label: 'Muscle Group', value: selectedExercise.muscleGroup },
-                { label: 'Equipment',    value: selectedExercise.equipment },
-                { label: 'Category',     value: selectedExercise.category },
-                { label: 'Difficulty',   value: selectedExercise.difficulty },
+                { label: 'Equipment', value: selectedExercise.equipment },
+                { label: 'Category', value: selectedExercise.category },
+                { label: 'Difficulty', value: selectedExercise.difficulty },
               ].map((item, i) => (
                 <div key={i} style={{ backgroundColor: '#121212', borderRadius: '8px', padding: '12px' }}>
                   <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 4px', textTransform: 'uppercase' }}>{item.label}</p>
-                  <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>{item.value}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {item.label === 'Muscle Group' && (
+                      <MuscleIcon muscleGroup={item.value} size={18} />
+                    )}
+                    <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>{item.value}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -400,9 +440,9 @@ export default function ExercisesPage() {
               <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recommended Sets & Reps</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                 {[
-                  { label: 'Strength',    sets: '4-5 sets', reps: '3-5 reps' },
+                  { label: 'Strength', sets: '4-5 sets', reps: '3-5 reps' },
                   { label: 'Hypertrophy', sets: '3-4 sets', reps: '8-12 reps' },
-                  { label: 'Endurance',   sets: '2-3 sets', reps: '15+ reps' },
+                  { label: 'Endurance', sets: '2-3 sets', reps: '15+ reps' },
                 ].map((r, i) => (
                   <div key={i} style={{ textAlign: 'center' }}>
                     <p style={{ fontSize: '11px', color: '#CCFF00', margin: '0 0 4px', fontWeight: '600' }}>{r.label}</p>
@@ -468,7 +508,7 @@ export default function ExercisesPage() {
                   <>
                     <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 8px', textTransform: 'uppercase' }}>Select Day</p>
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                      {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(day => (
+                      {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
                         <button
                           key={day}
                           onClick={() => setSelectedDay(day)}
