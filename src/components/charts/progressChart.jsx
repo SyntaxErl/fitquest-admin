@@ -53,7 +53,7 @@ export default function ProgressChart({ coachId }) {
   const isEmpty = data.every(d => d.clients === 0)
 
   return (
-    <div style={{ backgroundColor: '#2C2C2C', borderRadius: '14px', padding: '20px 24px', border: '1px solid #3A3A3A' }}>
+    <div style={{ backgroundColor: 'rgb(43, 41, 48)', borderRadius: '16px', padding: '20px 24px', border: '1px solid rgb(43, 41, 48)' }}>
       <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 4px' }}>
         Client Growth
       </p>

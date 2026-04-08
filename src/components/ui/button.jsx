@@ -26,7 +26,7 @@ export default function Button({ children, onClick, variant = 'primary', disable
         padding: '10px 20px',
         borderRadius: '8px',
         fontSize: '14px',
-        fontWeight: '600',
+        fontWeight: '100',
         cursor: disabled ? 'not-allowed' : 'pointer',
         width: fullWidth ? '100%' : 'auto',
         transition: 'opacity 0.2s, transform 0.1s',
