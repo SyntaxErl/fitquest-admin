@@ -3,6 +3,7 @@ import {
   doc, updateDoc, serverTimestamp
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { createNotification } from '@/lib/firestore/notifications'
 
 const INACTIVE_DAYS = 14
 let lastRunTime = null
@@ -65,12 +66,29 @@ export async function runAutoStatusCheck(coachId) {
         newStatus = 'active'
       }
 
-      // Only write if status changed
       if (newStatus !== client.status) {
         await updateDoc(doc(db, 'clients', client.id), {
-          status:    newStatus,
+          status: newStatus,
           updatedAt: serverTimestamp(),
         })
+
+        // 🔔 Notify coach when client completes or goes inactive
+        if (newStatus === 'completed') {
+          await createNotification(coachId, {
+            type: 'milestone',
+            message: `🎉 ${client.name} has completed their workout program!`,
+            clientId: client.id,
+            clientName: client.name,
+          })
+        } else if (newStatus === 'inactive') {
+          await createNotification(coachId, {
+            type: 'client_inactive',
+            message: `⚠️ ${client.name} has been inactive for ${INACTIVE_DAYS} days`,
+            clientId: client.id,
+            clientName: client.name,
+          })
+        }
+
         console.log(`Auto-status: ${client.name} → ${newStatus}`)
       }
     }

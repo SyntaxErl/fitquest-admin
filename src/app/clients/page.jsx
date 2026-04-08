@@ -89,8 +89,8 @@ export default function ClientsPage() {
         .search-input {
           flex: 1;
           min-width: 160px;
-          background: #2C2C2C;
-          border: 1px solid #3A3A3A;
+          background: rgb(43, 41, 48);
+          border: 1px solid rgb(43, 41, 48);
           border-radius: 8px;
           padding: 10px 14px;
           color: #FFFFFF;
@@ -115,7 +115,7 @@ export default function ClientsPage() {
           background: #CCFF00;
           color: #121212;
           border-color: #CCFF00;
-          font-weight: 600;
+          font-weight: 100;
         }
 
         /* ── Desktop table (>= 900px) ── */
@@ -134,8 +134,8 @@ export default function ClientsPage() {
           display: grid;
           grid-template-columns: 220px 1fr 1fr 120px 100px 90px;
           align-items: center;
-          background: #2C2C2C;
-          border: 1px solid #3A3A3A;
+          background: rgb(43, 41, 48);
+          border: 1px solid rgb(43, 41, 48);
           border-radius: 12px;
           padding: 14px 20px;
           margin-bottom: 8px;
@@ -177,8 +177,8 @@ export default function ClientsPage() {
         /* ── Mobile card (< 768px) ── */
         .client-card-mobile {
           display: none;
-          background: #2C2C2C;
-          border: 1px solid #3A3A3A;
+          background: rgb(43, 41, 48);
+          border: 1px solid rgb(43, 41, 48);
           border-radius: 14px;
           padding: 16px;
           margin-bottom: 10px;
@@ -235,7 +235,7 @@ export default function ClientsPage() {
           <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 4px' }}>Clients</h2>
           <p style={{ fontSize: '14px', color: '#A0A0A0', margin: 0 }}>Total Clients: {clients.length}</p>
         </div>
-        <Link href="/clients/new" style={{ textDecoration: 'none' }}>
+        <Link href="/clients/new" style={{ textDecoration: 'none'}}>
           <Button>+ Add Client</Button>
         </Link>
       </div>

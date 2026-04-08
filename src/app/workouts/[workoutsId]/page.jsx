@@ -330,7 +330,7 @@ export default function WorkoutDetailPage({ params }) {
       <style>{`
         .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; align-items: start; }
         .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-        .stat-card { background: #121212; border-radius: 10px; padding: 14px 16px; text-align: center; }
+        .stat-card { background: rgb(43, 41, 48); border-radius: 10px; padding: 14px 16px; text-align: center; }
         .ex-row { display: grid; grid-template-columns: 1fr 70px 70px 80px; align-items: center; padding: 12px 0; border-bottom: 1px solid #3A3A3A; font-size: 13px; gap: 8px; }
         .ex-header { display: grid; grid-template-columns: 1fr 70px 70px 80px; padding: 6px 0 10px; font-size: 11px; color: #A0A0A0; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #3A3A3A; gap: 8px; }
         .edit-ex-row { display: grid; grid-template-columns: 1fr 70px 70px 80px 36px; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid #3A3A3A; }
@@ -339,7 +339,7 @@ export default function WorkoutDetailPage({ params }) {
         .ex-picker-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
         .ex-picker-item:hover { background: #3A3A3A; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .modal { background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 16px; padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+        .modal { background: rgb(43, 41, 48); border: 1px solid rgb(43, 41, 48); border-radius: 16px; padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
         .remove-btn { background: transparent; border: none; color: #A0A0A0; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .remove-btn:hover { color: #FF5F1F; }
         @media (max-width: 768px) {
@@ -358,7 +358,7 @@ export default function WorkoutDetailPage({ params }) {
       </p>
 
       {/* Plan Header */}
-      <div style={{ backgroundColor: '#2C2C2C', border: '1px solid #3A3A3A', borderRadius: '16px', padding: '24px', marginBottom: '16px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{ backgroundColor: 'rgb(43, 41, 48)', border: '1px solid rgb(43, 41, 48)', borderRadius: '16px', padding: '24px', marginBottom: '16px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>{plan.name}</h2>
@@ -398,7 +398,7 @@ export default function WorkoutDetailPage({ params }) {
       <div className="detail-grid">
 
         {/* Schedule */}
-        <div style={{ backgroundColor: '#2C2C2C', border: '1px solid #3A3A3A', borderRadius: '16px', padding: '20px 24px' }}>
+        <div style={{ backgroundColor: 'rgb(43, 41, 48)', border: '1px solid rgb(43, 41, 48)', borderRadius: '16px', padding: '20px 24px' }}>
           <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 16px' }}>Weekly Schedule</p>
 
           {/* Day Tabs */}
@@ -481,7 +481,7 @@ export default function WorkoutDetailPage({ params }) {
         </div>
 
         {/* Clients */}
-        <div style={{ backgroundColor: '#2C2C2C', border: '1px solid #3A3A3A', borderRadius: '16px', padding: '20px 24px' }}>
+        <div style={{ backgroundColor: 'rgb(43, 41, 48)', border: '1px solid rgb(43, 41, 48)', borderRadius: '16px', padding: '20px 24px' }}>
           <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 16px' }}>
             Clients on this Plan
             <span style={{ fontSize: '12px', color: '#A0A0A0', fontWeight: '400', marginLeft: '8px' }}>{clients.length} clients</span>

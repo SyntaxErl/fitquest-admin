@@ -128,7 +128,7 @@ export default function NewWorkoutPage() {
         .exercise-picker-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
         .exercise-picker-item:hover { background: #3A3A3A; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .modal { background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 16px; padding: 24px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
+        .modal { background: rgb(43, 41, 48); border: 1px solid rgb(43, 41, 48); border-radius: 16px; padding: 24px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
         .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
         @media (max-width: 600px) {
           .ex-row { grid-template-columns: 1fr 55px 55px 36px; }
@@ -171,7 +171,7 @@ export default function NewWorkoutPage() {
 
       {/* STEP 1 — Plan Info */}
       {step === 1 && (
-        <div style={{ backgroundColor: '#2C2C2C', border: '1px solid #3A3A3A', borderRadius: '16px', padding: '28px' }}>
+        <div style={{ backgroundColor: 'rgb(43, 41, 48)', border: '1px solid rgb(43, 41, 48)', borderRadius: '16px', padding: '28px' }}>
           <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 20px' }}>Plan Details</p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
             <div>
@@ -219,7 +219,7 @@ export default function NewWorkoutPage() {
       {/* STEP 2 — Build Schedule */}
       {step === 2 && (
         <div>
-          <div style={{ backgroundColor: '#2C2C2C', border: '1px solid #3A3A3A', borderRadius: '16px', padding: '24px', marginBottom: '16px' }}>
+          <div style={{ backgroundColor: 'rgb(43, 41, 48)', border: '1px solid rgb(43, 41, 48)', borderRadius: '16px', padding: '24px', marginBottom: '16px' }}>
 
             {/* Plan summary */}
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '20px', padding: '12px 16px', backgroundColor: '#121212', borderRadius: '10px' }}>
@@ -315,7 +315,7 @@ export default function NewWorkoutPage() {
 
       {/* STEP 3 — Review */}
       {step === 3 && (
-        <div style={{ backgroundColor: '#2C2C2C', border: '1px solid #3A3A3A', borderRadius: '16px', padding: '28px' }}>
+        <div style={{ backgroundColor: 'rgb(43, 41, 48)', border: '1px solid rgb(43, 41, 48)', borderRadius: '16px', padding: '28px' }}>
           <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 20px' }}>Review Your Plan</p>
           <div className="summary-grid">
             {[

@@ -152,8 +152,8 @@ export default function NewClientPage() {
           padding: 14px 16px;
         }
         .form-card {
-          background-color: #2C2C2C;
-          border: 1px solid #3A3A3A;
+          background-color: rgb(43, 41, 48);
+          border: 1px solid rgb(43, 41, 48);
           border-radius: 16px;
           padding: 28px;
         }

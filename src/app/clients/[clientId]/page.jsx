@@ -10,6 +10,7 @@ import Avatar from '@/components/ui/avatar'
 import Badge from '@/components/ui/badge'
 import Button from '@/components/ui/button'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { createNotification } from '@/lib/firestore/notifications'
 
 const typeColors = {
   'Strength':       '#CCFF00',
@@ -139,6 +140,13 @@ export default function ClientProfilePage({ params }) {
         assignedPlanName: selectedPlan.name,
         updatedAt:        serverTimestamp(),
       })
+      // 🔔 Create notification
+    await createNotification(coach.uid, {
+      type:       'plan_assigned',
+      message:    `${client.name} has been assigned to ${selectedPlan.name}`,
+      clientId:   clientId,
+      clientName: client.name,
+    })
       setShowAssignPlan(false)
       setSelectedPlan(null)
     } catch (err) {
@@ -203,13 +211,13 @@ export default function ClientProfilePage({ params }) {
       <style>{`
         .tab-btn { padding: 8px 20px; border-radius: 8px; border: none; background: transparent; color: #A0A0A0; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
         .tab-btn.active { background: #CCFF00; color: #121212; font-weight: 600; }
-        .section-card { background: #2C2C2C; border: 1px solid #3A3A3A; border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; }
+        .section-card { background: rgb(43, 41, 48); border: 1px solid rgb(43, 41, 48); border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; }
         .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
         .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .modal-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .modal-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .section-label { font-size: 12px; color: #CCFF00; font-weight: 600; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .section-label { font-size: 12px; color: #CCFF00; font-weight: 100; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
         .history-header { display: grid; grid-template-columns: 130px 1fr 100px 100px; align-items: center; font-size: 11px; color: #A0A0A0; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #3A3A3A; padding-bottom: 10px; margin-bottom: 4px; }
         .history-row { display: grid; grid-template-columns: 130px 1fr 100px 100px; align-items: center; font-size: 13px; padding: 12px 0; border-bottom: 1px solid #3A3A3A; }
         @media (max-width: 768px) {
@@ -263,7 +271,7 @@ export default function ClientProfilePage({ params }) {
           { label: 'Body Fat', value: client.bodyFat  || '—' },
           { label: 'BMI',      value: bmi },
         ].map((m, i) => (
-          <div key={i} style={{ backgroundColor: '#121212', borderRadius: '10px', padding: '14px 16px', textAlign: 'center' }}>
+          <div key={i} style={{ backgroundColor: 'rgb(43, 41, 48)', borderRadius: '10px', padding: '14px 16px', textAlign: 'center' }}>
             <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{m.label}</p>
             <p style={{ fontSize: '22px', fontWeight: '700', color: '#CCFF00', margin: 0 }}>{m.value}</p>
           </div>
@@ -271,7 +279,7 @@ export default function ClientProfilePage({ params }) {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '4px', backgroundColor: '#2C2C2C', borderRadius: '10px', padding: '4px', width: 'fit-content', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', gap: '4px', backgroundColor: 'rgb(43, 41, 48)', borderRadius: '10px', padding: '4px', width: 'fit-content', marginBottom: '20px' }}>
         {['overview', 'history'].map(t => (
           <button key={t} className={`tab-btn ${activeTab === t ? 'active' : ''}`} onClick={() => setActiveTab(t)}>{t}</button>
         ))}
@@ -304,7 +312,7 @@ export default function ClientProfilePage({ params }) {
               <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 8px' }}>Current Plan Progress</p>
               {client.assignedPlanName ? (
                 <>
-                  <div style={{ height: '8px', backgroundColor: '#121212', borderRadius: '10px', marginBottom: '8px' }}>
+                  <div style={{ height: '8px', backgroundColor: '#49454F', borderRadius: '10px', marginBottom: '8px' }}>
                     <div style={{ width: `${client.progress || 0}%`, height: '100%', backgroundColor: '#CCFF00', borderRadius: '10px' }} />
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -322,7 +330,7 @@ export default function ClientProfilePage({ params }) {
           </div>
 
           {/* Training Volume Chart */}
-          <div style={{ backgroundColor: '#2C2C2C', border: '1px solid #3A3A3A', borderRadius: '14px', padding: '20px 24px' }}>
+          <div style={{ backgroundColor: 'rgb(43, 41, 48)', border: '1px solid rgb(43, 41, 48)', borderRadius: '14px', padding: '20px 24px' }}>
             <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 4px' }}>Training Volume Progress</p>
             <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 20px' }}>Weekly training volume over recent sessions</p>
             {chartData.length === 0 ? (
@@ -470,10 +478,10 @@ export default function ClientProfilePage({ params }) {
 
       {/* EDIT PROFILE MODAL */}
       {showEdit && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setShowEdit(false)}>
-          <div style={{ backgroundColor: '#2C2C2C', border: '1px solid #3A3A3A', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setShowEdit(false)}>
+          <div style={{ backgroundColor: '#1C1B1F', border: '1px solid #3A3A3A', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>Edit Profile</h3>
+              <h3 style={{ fontSize: '16px', fontWeight: '100', color: '#FFFFFF', margin: 0 }}>Edit Profile</h3>
               <button onClick={() => setShowEdit(false)} style={{ background: 'transparent', border: 'none', color: '#A0A0A0', fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
             <p className="section-label">Personal Info</p>
