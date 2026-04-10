@@ -9,12 +9,12 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts'
 
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 const typeColors = {
-  'Strength':        '#D0BCFF',
-  'Fat Loss':        '#F28B82',
-  'Hypertrophy':     '#93C8F4',
+  'Strength': '#D0BCFF',
+  'Fat Loss': '#F28B82',
+  'Hypertrophy': '#93C8F4',
   'General Fitness': '#6DD5A0',
 }
 
@@ -39,11 +39,11 @@ const card = {
 
 export default function AnalyticsPage() {
   const { coach } = useAuth()
-  const [period, setPeriod]     = useState('6months')
-  const [clients, setClients]   = useState([])
-  const [plans, setPlans]       = useState([])
+  const [period, setPeriod] = useState('6months')
+  const [clients, setClients] = useState([])
+  const [plans, setPlans] = useState([])
   const [sessions, setSessions] = useState([])
-  const [loading, setLoading]   = useState(true)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!coach?.uid) return
@@ -67,13 +67,13 @@ export default function AnalyticsPage() {
   }, [coach?.uid])
 
   // ── Computed Stats ──────────────────────────────────────────
-  const totalClients  = clients.length
-  const activePlans   = plans.filter(p => p.status === 'active').length
+  const totalClients = clients.length
+  const activePlans = plans.filter(p => p.status === 'active').length
   const activeClients = clients.filter(c => c.status === 'active').length
   const retentionRate = totalClients > 0 ? Math.round((activeClients / totalClients) * 100) : 0
   const completedSessions = sessions.filter(s => s.status === 'completed').length
-  const totalSessions     = sessions.length
-  const avgCompletion     = totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0
+  const totalSessions = sessions.length
+  const avgCompletion = totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0
 
   const periodMonths = period === '1month' ? 1 : period === '3months' ? 3 : 6
 
@@ -88,7 +88,7 @@ export default function AnalyticsPage() {
     }
   })
 
-  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   const weeklyActivityData = dayNames.map((day, i) => {
     const dayIndex = i === 6 ? 0 : i + 1
     const daySessions = sessions.filter(s => { const date = s.date?.toDate?.(); return date && date.getDay() === dayIndex })
@@ -99,7 +99,7 @@ export default function AnalyticsPage() {
     const d = new Date()
     d.setMonth(d.getMonth() - (periodMonths - 1 - i))
     const monthStart = new Date(d.getFullYear(), d.getMonth(), 1)
-    const monthEnd   = new Date(d.getFullYear(), d.getMonth() + 1, 0)
+    const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0)
     const ms = sessions.filter(s => { const date = s.date?.toDate?.(); return date && date >= monthStart && date <= monthEnd })
     return {
       month: MONTHS[d.getMonth()],
@@ -111,11 +111,11 @@ export default function AnalyticsPage() {
     const d = new Date()
     d.setMonth(d.getMonth() - (periodMonths - 1 - i))
     const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0)
-    const byMonth  = clients.filter(c => { const j = c.joinedAt?.toDate?.(); return j && j <= monthEnd })
+    const byMonth = clients.filter(c => { const j = c.joinedAt?.toDate?.(); return j && j <= monthEnd })
     return {
-      month:    MONTHS[d.getMonth()],
+      month: MONTHS[d.getMonth()],
       retained: byMonth.filter(c => c.status === 'active').length,
-      churned:  byMonth.filter(c => c.status === 'inactive' || c.status === 'completed').length,
+      churned: byMonth.filter(c => c.status === 'inactive' || c.status === 'completed').length,
     }
   })
 
@@ -133,7 +133,7 @@ export default function AnalyticsPage() {
     .slice(0, 5)
     .map(c => ({
       ...c,
-      planName:     plans.find(p => p.id === c.assignedPlanId)?.name || '—',
+      planName: plans.find(p => p.id === c.assignedPlanId)?.name || '—',
       sessionCount: sessions.filter(s => s.clientId === c.id && s.status === 'completed').length,
     }))
 
@@ -141,13 +141,13 @@ export default function AnalyticsPage() {
     const d = new Date()
     d.setMonth(d.getMonth() - (periodMonths - 1 - i))
     const monthStart = new Date(d.getFullYear(), d.getMonth(), 1)
-    const monthEnd   = new Date(d.getFullYear(), d.getMonth() + 1, 0)
+    const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0)
     const ms = sessions.filter(s => { const date = s.date?.toDate?.(); return date && date >= monthStart && date <= monthEnd })
     const done = ms.filter(s => s.status === 'completed').length
     return {
-      month:          `${MONTHS[d.getMonth()]} ${d.getFullYear()}`,
-      totalClients:   clients.filter(c => { const j = c.joinedAt?.toDate?.(); return j && j <= monthEnd }).length,
-      workoutsDone:   done,
+      month: `${MONTHS[d.getMonth()]} ${d.getFullYear()}`,
+      totalClients: clients.filter(c => { const j = c.joinedAt?.toDate?.(); return j && j <= monthEnd }).length,
+      workoutsDone: done,
       completionRate: ms.length > 0 ? Math.round((done / ms.length) * 100) : 0,
     }
   })
@@ -203,10 +203,10 @@ export default function AnalyticsPage() {
       {/* KPI Cards */}
       <div className="an-grid-4">
         {[
-          { label: 'Total Clients',    value: totalClients.toString(),                              sub: `${activeClients} active`,                  good: true },
-          { label: 'Avg Completion',   value: avgCompletion > 0 ? `${avgCompletion}%` : '—',       sub: `${completedSessions} sessions done`,        good: avgCompletion >= 70 },
-          { label: 'Active Plans',     value: activePlans.toString(),                               sub: `${plans.length} total plans`,              good: true },
-          { label: 'Client Retention', value: retentionRate > 0 ? `${retentionRate}%` : '—',       sub: `${activeClients} of ${totalClients} active`, good: retentionRate >= 70 },
+          { label: 'Total Clients', value: totalClients.toString(), sub: `${activeClients} active`, good: true },
+          { label: 'Avg Completion', value: avgCompletion > 0 ? `${avgCompletion}%` : '—', sub: `${completedSessions} sessions done`, good: avgCompletion >= 70 },
+          { label: 'Active Plans', value: activePlans.toString(), sub: `${plans.length} total plans`, good: true },
+          { label: 'Client Retention', value: retentionRate > 0 ? `${retentionRate}%` : '—', sub: `${activeClients} of ${totalClients} active`, good: retentionRate >= 70 },
         ].map((kpi, i) => (
           <div key={i} className="an-stat">
             <p style={{ fontSize: '11px', color: '#938F99', fontWeight: '500', letterSpacing: '0.5px', textTransform: 'uppercase', margin: '0 0 10px' }}>{kpi.label}</p>
@@ -252,8 +252,8 @@ export default function AnalyticsPage() {
                 <YAxis stroke="#49454F" tick={{ fill: '#938F99', fontSize: 12 }} />
                 <Tooltip {...tooltipStyle} />
                 <Legend wrapperStyle={{ color: '#938F99', fontSize: '12px' }} />
-                <Bar dataKey="sessions"  fill="#3B3645" radius={[6,6,0,0]} name="Scheduled" />
-                <Bar dataKey="completed" fill="#D0BCFF" radius={[6,6,0,0]} name="Completed" />
+                <Bar dataKey="sessions" fill="#3B3645" radius={[6, 6, 0, 0]} name="Scheduled" />
+                <Bar dataKey="completed" fill="#D0BCFF" radius={[6, 6, 0, 0]} name="Completed" />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -293,8 +293,8 @@ export default function AnalyticsPage() {
                 <YAxis stroke="#49454F" tick={{ fill: '#938F99', fontSize: 12 }} />
                 <Tooltip {...tooltipStyle} />
                 <Legend wrapperStyle={{ color: '#938F99', fontSize: '12px' }} />
-                <Bar dataKey="retained" fill="#CCFF00" radius={[6,6,0,0]} name="Retained" />
-                <Bar dataKey="churned"  fill="#F28B82" radius={[6,6,0,0]} name="Churned" />
+                <Bar dataKey="retained" fill="#CCFF00" radius={[6, 6, 0, 0]} name="Retained" />
+                <Bar dataKey="churned" fill="#F28B82" radius={[6, 6, 0, 0]} name="Churned" />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -314,9 +314,9 @@ export default function AnalyticsPage() {
                 <span style={{ width: '20px', fontSize: '12px', fontWeight: '500', color: rankColors[i], flexShrink: 0, textAlign: 'center' }}>{i + 1}</span>
                 <div style={{
                   width: '36px', height: '36px', borderRadius: '50%',
-                  background: '#4A4458',
+                  background: client.avatarColor || '#CCFF00',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: '500', fontSize: '13px', color: '#E6DEF6', flexShrink: 0,
+                  fontWeight: '500', fontSize: '13px', color: '#121212', flexShrink: 0,
                 }}>
                   {client.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                 </div>
@@ -405,12 +405,12 @@ export default function AnalyticsPage() {
                         padding: '3px 10px',
                         background: row.workoutsDone === 0 ? 'transparent'
                           : row.completionRate >= 80 ? '#1B3A2D'
-                          : row.completionRate >= 50 ? '#2D2A1B'
-                          : '#3A1B1B',
+                            : row.completionRate >= 50 ? '#2D2A1B'
+                              : '#3A1B1B',
                         color: row.workoutsDone === 0 ? '#938F99'
                           : row.completionRate >= 80 ? '#6DD5A0'
-                          : row.completionRate >= 50 ? '#F4B942'
-                          : '#F28B82',
+                            : row.completionRate >= 50 ? '#F4B942'
+                              : '#F28B82',
                         fontWeight: '500',
                       }}>
                         {row.workoutsDone === 0 ? '—' : `${row.completionRate}%`}

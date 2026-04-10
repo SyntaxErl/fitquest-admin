@@ -11,6 +11,7 @@ import Badge from '@/components/ui/badge'
 import Button from '@/components/ui/button'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { createNotification } from '@/lib/firestore/notifications'
+import { updateClient, deleteClient } from '@/lib/firestore/clients'
 
 const typeColors = {
   'Strength':       '#CCFF00',
@@ -108,7 +109,7 @@ export default function ClientProfilePage({ params }) {
     }
     setSaving(true)
     try {
-      await updateDoc(doc(db, 'clients', clientId), {
+      await updateClient(clientId, {
         name:          editData.name,
         email:         editData.email,
         phone:         editData.phone,
@@ -121,7 +122,7 @@ export default function ClientProfilePage({ params }) {
         dailyCalories: editData.dailyCalories,
         waterIntake:   editData.waterIntake,
         updatedAt:     serverTimestamp(),
-      })
+      }, coach.uid, client.name)
       setShowEdit(false)
     } catch (err) {
       alert('Error saving. Please try again.')
@@ -160,7 +161,7 @@ export default function ClientProfilePage({ params }) {
   const handleDelete = async () => {
     setDeleting(true)
     try {
-      await deleteDoc(doc(db, 'clients', clientId))
+    await deleteClient(clientId, coach.uid, client.name)
       router.push('/clients')
     } catch (err) {
       alert('Error deleting client. Please try again.')

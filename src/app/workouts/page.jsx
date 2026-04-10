@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { onSnapshot, deleteDoc, doc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/context/AuthContext'
-import { workoutPlansQuery, updateWorkoutPlan } from '@/lib/firestore/workoutPlans'
+import { workoutPlansQuery, updateWorkoutPlan, deleteWorkoutPlan } from '@/lib/firestore/workoutPlans'
+
 
 // ─── Constants ─────────────────────────────────────────────────
 const typeStyle = {
@@ -87,7 +88,7 @@ export default function WorkoutsPage() {
         weeks: Number(editPlan.weeks),
         sessionsPerWeek: Number(editPlan.sessions || editPlan.sessionsPerWeek),
         status: editPlan.status,
-      })
+      }, coach.uid, editPlan.name)
       setEditPlan(null)
     } catch { alert('Error saving. Please try again.') }
     finally { setSaving(false) }
@@ -96,7 +97,7 @@ export default function WorkoutsPage() {
   const handleDelete = async (planId) => {
     setDeletingId(planId)
     try {
-      await deleteDoc(doc(db, 'workoutPlans', planId))
+      await deleteWorkoutPlan(planId, coach.uid, showDeleteConfirm.name)
       setShowDeleteConfirm(null)
     } catch { alert('Error deleting plan.') }
     finally { setDeletingId(null) }

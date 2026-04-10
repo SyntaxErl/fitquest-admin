@@ -3,6 +3,7 @@ import {
   query, where, orderBy, serverTimestamp
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { createNotification } from '@/lib/firestore/notifications'
 
 // Add a custom exercise
 export async function addExercise(coachId, exerciseData) {
@@ -17,6 +18,10 @@ export async function addExercise(coachId, exerciseData) {
     coachId:     coachId || null,
     createdAt:   serverTimestamp(),
   })
+  await createNotification(coachId, {
+    type:    'exercise_added',
+    message: `🏋️ Custom exercise "${exerciseData.name}" added to library`,
+  })
   return ref.id
 }
 
@@ -29,8 +34,14 @@ export async function updateExercise(exerciseId, data) {
 }
 
 // Delete a custom exercise
-export async function deleteExercise(exerciseId) {
+export async function deleteExercise(exerciseId, coachId, exerciseName) {
   await deleteDoc(doc(db, 'exercises', exerciseId))
+  if (coachId && exerciseName) {
+    await createNotification(coachId, {
+      type:    'exercise_deleted',
+      message: `🗑️ Exercise "${exerciseName}" removed from library`,
+    })
+  }
 }
 
 // Query all exercises ordered by creation
