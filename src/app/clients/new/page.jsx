@@ -23,13 +23,17 @@ const steps = [
   { n: 5, label: 'Review' },
 ]
 
-const Field = ({ label, children }) => (
-    <div>
-      <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>{label}</p>
-      {children}
-    </div>
-  )
-
+const Field = ({ label, error, children }) => (
+  <div>
+    <p style={{ fontSize: '12px', color: error ? '#FF5F5F' : '#A0A0A0', margin: '0 0 8px' }}>{label}</p>
+    {children}
+    {error && (
+      <p style={{ fontSize: '11px', color: '#FF5F5F', margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <span>⚠</span> {error}
+      </p>
+    )}
+  </div>
+)
 
 export default function NewClientPage() {
   const router = useRouter()
@@ -39,6 +43,7 @@ export default function NewClientPage() {
   const [saving, setSaving] = useState(false)
   const [plans, setPlans]   = useState([])
   const [planSearch, setPlanSearch] = useState('')
+  const [errors, setErrors] = useState({})
 
   const [form, setForm] = useState({
     name:          '',
@@ -71,31 +76,89 @@ export default function NewClientPage() {
     fetchPlans()
   }, [coach?.uid])
 
-  const update = (key, value) => setForm(prev => ({ ...prev, [key]: value }))
+  const update = (key, value) => {
+    setForm(prev => ({ ...prev, [key]: value }))
+    // Clear error on change
+    if (errors[key]) setErrors(prev => ({ ...prev, [key]: '' }))
+  }
 
   const filteredPlans = plans.filter(p =>
     p.name?.toLowerCase().includes(planSearch.toLowerCase()) ||
     p.type?.toLowerCase().includes(planSearch.toLowerCase())
   )
 
-  const validateStep = () => {
-    if (step === 1) {
-      if (!form.name.trim()) { alert('Full name is required.'); return false }
-      if (!form.email.trim()) { alert('Email address is required.'); return false }
-      if (!form.goal) { alert('Please select a fitness goal.'); return false }
-      return true
+  // ── Validators ──────────────────────────────────────────────
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  const isValidPhone = (phone) => !phone || /^[\d\s\+\-\(\)]{7,20}$/.test(phone)
+  const isPositiveNumber = (val) => !val || (!isNaN(val) && parseFloat(val) > 0)
+
+  const validateStep1 = () => {
+    const e = {}
+    if (!form.name.trim())
+      e.name = 'Full name is required.'
+    else if (form.name.trim().length < 2)
+      e.name = 'Name must be at least 2 characters.'
+
+    if (!form.email.trim())
+      e.email = 'Email address is required.'
+    else if (!isValidEmail(form.email))
+      e.email = 'Enter a valid email address.'
+
+    if (form.phone && !isValidPhone(form.phone))
+      e.phone = 'Enter a valid phone number.'
+
+    if (!form.goal)
+      e.goal = 'Please select a fitness goal.'
+
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
+
+  const validateStep2 = () => {
+    const e = {}
+    if (!form.weight.trim())
+      e.weight = 'Weight is required.'
+    else if (isNaN(form.weight) || parseFloat(form.weight) <= 0)
+      e.weight = 'Enter a valid weight in kg.'
+    else if (parseFloat(form.weight) < 20 || parseFloat(form.weight) > 500)
+      e.weight = 'Weight must be between 20–500 kg.'
+
+    if (!form.height.trim())
+      e.height = 'Height is required.'
+    else if (isNaN(form.height) || parseFloat(form.height) <= 0)
+      e.height = 'Enter a valid height in cm.'
+    else if (parseFloat(form.height) < 50 || parseFloat(form.height) > 300)
+      e.height = 'Height must be between 50–300 cm.'
+
+    if (form.bodyFat) {
+      if (isNaN(form.bodyFat) || parseFloat(form.bodyFat) <= 0)
+        e.bodyFat = 'Enter a valid body fat percentage.'
+      else if (parseFloat(form.bodyFat) > 70)
+        e.bodyFat = 'Body fat must be between 1–70%.'
     }
-    if (step === 2) {
-      if (!form.weight.trim()) { alert('Weight is required.'); return false }
-      if (!form.height.trim()) { alert('Height is required.'); return false }
-      return true
+
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
+
+  const validateStep3 = () => {
+    const e = {}
+    if (form.dailyCalories) {
+      if (isNaN(form.dailyCalories) || parseFloat(form.dailyCalories) <= 0)
+        e.dailyCalories = 'Enter a valid calorie amount.'
+      else if (parseFloat(form.dailyCalories) < 500 || parseFloat(form.dailyCalories) > 15000)
+        e.dailyCalories = 'Calories must be between 500–15,000 kcal.'
     }
-    return true
+    setErrors(e)
+    return Object.keys(e).length === 0
   }
 
   const handleNext = () => {
-    if (!validateStep()) return
-    setStep(s => s + 1)
+    let valid = true
+    if (step === 1) valid = validateStep1()
+    if (step === 2) valid = validateStep2()
+    if (step === 3) valid = validateStep3()
+    if (valid) { setErrors({}); setStep(s => s + 1) }
   }
 
   const handleSave = async () => {
@@ -111,109 +174,51 @@ export default function NewClientPage() {
     }
   }
 
-  const bmiPreview = form.weight && form.height
+  const bmiPreview = form.weight && form.height && !isNaN(form.weight) && !isNaN(form.height)
     ? (parseFloat(form.weight) / Math.pow(parseFloat(form.height) / 100, 2)).toFixed(1)
     : '—'
 
-  const inputStyle = {
+  const inputStyle = (hasError) => ({
     width: '100%',
     backgroundColor: '#121212',
-    border: '1px solid #3A3A3A',
+    border: `1px solid ${hasError ? '#FF5F5F' : '#3A3A3A'}`,
     borderRadius: '8px',
     padding: '10px 14px',
     color: '#FFFFFF',
     fontSize: '14px',
     outline: 'none',
     boxSizing: 'border-box',
+    transition: 'border-color 0.15s',
+  })
+
+  const onFocus = e => {
+    if (!e.target.style.borderColor.includes('FF5F5F'))
+      e.target.style.borderColor = '#CCFF00'
+  }
+  const onBlur = (key) => e => {
+    if (!errors[key]) e.target.style.borderColor = '#3A3A3A'
   }
 
-  const onFocus = e => e.target.style.borderColor = '#CCFF00'
-  const onBlur  = e => e.target.style.borderColor = '#3A3A3A'
-
-  
   return (
     <div style={{ width: '100%', maxWidth: '760px', boxSizing: 'border-box', padding: '0 4px' }}>
 
       <style>{`
-        .form-grid-2 {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-        }
-        .review-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-          margin-bottom: 20px;
-        }
-        .review-item {
-          background: #121212;
-          border-radius: 10px;
-          padding: 14px 16px;
-        }
-        .form-card {
-          background-color: rgb(43, 41, 48);
-          border: 1px solid rgb(43, 41, 48);
-          border-radius: 16px;
-          padding: 28px;
-        }
-        .step-scroll {
-          display: flex;
-          align-items: flex-start;
-          margin-bottom: 32px;
-          overflow-x: auto;
-          padding-bottom: 4px;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-          -webkit-overflow-scrolling: touch;
-        }
-        .step-scroll::-webkit-scrollbar {
-          display: none;
-        }
-        .step-circle {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 13px;
-          font-weight: 600;
-          flex-shrink: 0;
-        }
-        .step-label {
-          font-size: 10px;
-          margin-top: 6px;
-          text-align: center;
-          white-space: nowrap;
-        }
-        .nav-buttons {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 12px;
-        }
+        .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .review-item { background: #121212; border-radius: 10px; padding: 14px 16px; }
+        .form-card { background-color: rgb(43,41,48); border: 1px solid rgb(43,41,48); border-radius: 16px; padding: 28px; }
+        .step-scroll { display: flex; align-items: flex-start; margin-bottom: 32px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+        .step-scroll::-webkit-scrollbar { display: none; }
+        .step-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+        .step-label { font-size: 10px; margin-top: 6px; text-align: center; white-space: nowrap; }
+        .nav-buttons { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .error-banner { background: rgba(255,95,95,0.08); border: 1px solid rgba(255,95,95,0.25); border-radius: 10px; padding: 12px 14px; margin-bottom: 20px; font-size: 13px; color: #FF5F5F; display: flex; align-items: center; gap: 8px; }
         @media (max-width: 600px) {
-          .form-grid-2 {
-            grid-template-columns: 1fr;
-          }
-          .review-grid {
-            grid-template-columns: 1fr;
-          }
-          .form-card {
-            padding: 18px 16px !important;
-          }
-          .step-circle {
-            width: 26px !important;
-            height: 26px !important;
-            font-size: 11px !important;
-          }
-          .step-label {
-            font-size: 9px !important;
-          }
-          .nav-buttons {
-            flex-direction: row;
-          }
+          .form-grid-2 { grid-template-columns: 1fr; }
+          .review-grid { grid-template-columns: 1fr; }
+          .form-card { padding: 18px 16px !important; }
+          .step-circle { width: 26px !important; height: 26px !important; font-size: 11px !important; }
+          .step-label { font-size: 9px !important; }
         }
       `}</style>
 
@@ -227,12 +232,8 @@ export default function NewClientPage() {
 
       {/* Title */}
       <div style={{ marginBottom: '28px' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 4px' }}>
-          Add New Client
-        </h2>
-        <p style={{ fontSize: '14px', color: '#A0A0A0', margin: 0 }}>
-          Fill in the client's details step by step
-        </p>
+        <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 4px' }}>Add New Client</h2>
+        <p style={{ fontSize: '14px', color: '#A0A0A0', margin: 0 }}>Fill in the client's details step by step</p>
       </div>
 
       {/* Step Bar */}
@@ -240,31 +241,17 @@ export default function NewClientPage() {
         {steps.map((s, i) => (
           <div key={s.n} style={{ display: 'flex', alignItems: 'center', flex: i < steps.length - 1 ? 1 : 'none' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '50px' }}>
-              <div
-                className="step-circle"
-                style={{
-                  backgroundColor: step >= s.n ? '#CCFF00' : '#2C2C2C',
-                  color: step >= s.n ? '#121212' : '#A0A0A0',
-                  border: step >= s.n ? 'none' : '1px solid #3A3A3A',
-                }}
-              >
+              <div className="step-circle" style={{
+                backgroundColor: step >= s.n ? '#CCFF00' : '#2C2C2C',
+                color: step >= s.n ? '#121212' : '#A0A0A0',
+                border: step >= s.n ? 'none' : '1px solid #3A3A3A',
+              }}>
                 {step > s.n ? '✓' : s.n}
               </div>
-              <span
-                className="step-label"
-                style={{ color: step >= s.n ? '#CCFF00' : '#A0A0A0' }}
-              >
-                {s.label}
-              </span>
+              <span className="step-label" style={{ color: step >= s.n ? '#CCFF00' : '#A0A0A0' }}>{s.label}</span>
             </div>
             {i < steps.length - 1 && (
-              <div style={{
-                flex: 1,
-                height: '2px',
-                backgroundColor: step > s.n ? '#CCFF00' : '#3A3A3A',
-                marginBottom: '18px',
-                minWidth: '8px',
-              }} />
+              <div style={{ flex: 1, height: '2px', backgroundColor: step > s.n ? '#CCFF00' : '#3A3A3A', marginBottom: '18px', minWidth: '8px' }} />
             )}
           </div>
         ))}
@@ -273,21 +260,52 @@ export default function NewClientPage() {
       {/* ── STEP 1 — Personal Info ── */}
       {step === 1 && (
         <div className="form-card">
-          <p style={{ fontSize: '11px', fontWeight: '600', color: '#CCFF00', margin: '0 0 20px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Personal Information
-          </p>
+          <p style={{ fontSize: '11px', fontWeight: '600', color: '#CCFF00', margin: '0 0 20px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Personal Information</p>
+
+          {Object.keys(errors).length > 0 && (
+            <div className="error-banner">⚠ Please fix the errors below before continuing.</div>
+          )}
+
           <div className="form-grid-2" style={{ marginBottom: '16px' }}>
-            <Field label="Full Name *">
-              <input style={inputStyle} placeholder="e.g. Juan Dela Cruz" value={form.name} onChange={e => update('name', e.target.value)} onFocus={onFocus} onBlur={onBlur} />
+            <Field label="Full Name *" error={errors.name}>
+              <input
+                style={inputStyle(errors.name)}
+                placeholder="e.g. Juan Dela Cruz"
+                value={form.name}
+                onChange={e => update('name', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('name')}
+              />
             </Field>
-            <Field label="Email Address *">
-              <input type="email" style={inputStyle} placeholder="e.g. juan@email.com" value={form.email} onChange={e => update('email', e.target.value)} onFocus={onFocus} onBlur={onBlur} />
+            <Field label="Email Address *" error={errors.email}>
+              <input
+                type="email"
+                style={inputStyle(errors.email)}
+                placeholder="e.g. juan@email.com"
+                value={form.email}
+                onChange={e => update('email', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('email')}
+              />
             </Field>
-            <Field label="Phone Number">
-              <input style={inputStyle} placeholder="e.g. +63 912 345 6789" value={form.phone} onChange={e => update('phone', e.target.value)} onFocus={onFocus} onBlur={onBlur} />
+            <Field label="Phone Number" error={errors.phone}>
+              <input
+                style={inputStyle(errors.phone)}
+                placeholder="e.g. +63 912 345 6789"
+                value={form.phone}
+                onChange={e => update('phone', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('phone')}
+              />
             </Field>
-            <Field label="Fitness Goal *">
-              <select style={inputStyle} value={form.goal} onChange={e => update('goal', e.target.value)} onFocus={onFocus} onBlur={onBlur}>
+            <Field label="Fitness Goal *" error={errors.goal}>
+              <select
+                style={inputStyle(errors.goal)}
+                value={form.goal}
+                onChange={e => update('goal', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('goal')}
+              >
                 <option value="">Select goal</option>
                 <option>Strength</option>
                 <option>Fat Loss</option>
@@ -296,7 +314,13 @@ export default function NewClientPage() {
               </select>
             </Field>
             <Field label="Initial Status">
-              <select style={inputStyle} value={form.status} onChange={e => update('status', e.target.value)} onFocus={onFocus} onBlur={onBlur}>
+              <select
+                style={inputStyle(false)}
+                value={form.status}
+                onChange={e => update('status', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('status')}
+              >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
@@ -311,21 +335,45 @@ export default function NewClientPage() {
       {/* ── STEP 2 — Body Metrics ── */}
       {step === 2 && (
         <div className="form-card">
-          <p style={{ fontSize: '11px', fontWeight: '600', color: '#CCFF00', margin: '0 0 20px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Body Metrics
-          </p>
+          <p style={{ fontSize: '11px', fontWeight: '600', color: '#CCFF00', margin: '0 0 20px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Body Metrics</p>
+
+          {Object.keys(errors).length > 0 && (
+            <div className="error-banner">⚠ Please fix the errors below before continuing.</div>
+          )}
+
           <div className="form-grid-2" style={{ marginBottom: '16px' }}>
-            <Field label="Weight * (kg)">
-              <input style={inputStyle} placeholder="e.g. 75" value={form.weight} onChange={e => update('weight', e.target.value)} onFocus={onFocus} onBlur={onBlur} />
+            <Field label="Weight * (kg)" error={errors.weight}>
+              <input
+                style={inputStyle(errors.weight)}
+                placeholder="e.g. 75"
+                value={form.weight}
+                onChange={e => update('weight', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('weight')}
+              />
             </Field>
-            <Field label="Height * (cm)">
-              <input style={inputStyle} placeholder="e.g. 175" value={form.height} onChange={e => update('height', e.target.value)} onFocus={onFocus} onBlur={onBlur} />
+            <Field label="Height * (cm)" error={errors.height}>
+              <input
+                style={inputStyle(errors.height)}
+                placeholder="e.g. 175"
+                value={form.height}
+                onChange={e => update('height', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('height')}
+              />
             </Field>
-            <Field label="Body Fat %">
-              <input style={inputStyle} placeholder="e.g. 18" value={form.bodyFat} onChange={e => update('bodyFat', e.target.value)} onFocus={onFocus} onBlur={onBlur} />
+            <Field label="Body Fat %" error={errors.bodyFat}>
+              <input
+                style={inputStyle(errors.bodyFat)}
+                placeholder="e.g. 18"
+                value={form.bodyFat}
+                onChange={e => update('bodyFat', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('bodyFat')}
+              />
             </Field>
             <Field label="BMI (auto-calculated)">
-              <div style={{ ...inputStyle, color: bmiPreview !== '—' ? '#CCFF00' : '#A0A0A0', cursor: 'not-allowed', display: 'flex', alignItems: 'center' }}>
+              <div style={{ ...inputStyle(false), color: bmiPreview !== '—' ? '#CCFF00' : '#A0A0A0', cursor: 'not-allowed', display: 'flex', alignItems: 'center' }}>
                 {bmiPreview}
               </div>
             </Field>
@@ -341,43 +389,74 @@ export default function NewClientPage() {
               }}>
                 {parseFloat(bmiPreview) < 18.5 ? '🔵 Underweight' :
                  parseFloat(bmiPreview) < 25   ? '🟢 Normal weight' :
-                 parseFloat(bmiPreview) < 30   ? '🟠 Overweight'   : '🔴 Obese'}
+                 parseFloat(bmiPreview) < 30   ? '🟠 Overweight' : '🔴 Obese'}
               </p>
             </div>
           )}
 
           <div className="nav-buttons">
-            <Button variant="secondary" onClick={() => setStep(1)}>← Back</Button>
+            <Button variant="secondary" onClick={() => { setErrors({}); setStep(1) }}>← Back</Button>
             <Button onClick={handleNext}>Next: Diet & Nutrition →</Button>
           </div>
         </div>
       )}
 
-      {/* ── STEP 3 — Dietary Preferences ── */}
+      {/* ── STEP 3 — Diet & Nutrition ── */}
       {step === 3 && (
         <div className="form-card">
-          <p style={{ fontSize: '11px', fontWeight: '600', color: '#CCFF00', margin: '0 0 20px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Diet & Nutrition
-          </p>
+          <p style={{ fontSize: '11px', fontWeight: '600', color: '#CCFF00', margin: '0 0 20px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Diet & Nutrition</p>
+
+          {Object.keys(errors).length > 0 && (
+            <div className="error-banner">⚠ Please fix the errors below before continuing.</div>
+          )}
+
           <div className="form-grid-2" style={{ marginBottom: '16px' }}>
             <Field label="Diet Type">
-              <input style={inputStyle} placeholder="e.g. High Protein, Keto, Vegan" value={form.preference} onChange={e => update('preference', e.target.value)} onFocus={onFocus} onBlur={onBlur} />
+              <input
+                style={inputStyle(false)}
+                placeholder="e.g. High Protein, Keto, Vegan"
+                value={form.preference}
+                onChange={e => update('preference', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('preference')}
+              />
             </Field>
             <Field label="Allergies / Intolerances">
-              <input style={inputStyle} placeholder="e.g. None, Gluten, Dairy" value={form.allergies} onChange={e => update('allergies', e.target.value)} onFocus={onFocus} onBlur={onBlur} />
+              <input
+                style={inputStyle(false)}
+                placeholder="e.g. None, Gluten, Dairy"
+                value={form.allergies}
+                onChange={e => update('allergies', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('allergies')}
+              />
             </Field>
-            <Field label="Daily Calorie Target (kcal)">
-              <input style={inputStyle} placeholder="e.g. 2800" value={form.dailyCalories} onChange={e => update('dailyCalories', e.target.value)} onFocus={onFocus} onBlur={onBlur} />
+            <Field label="Daily Calorie Target (kcal)" error={errors.dailyCalories}>
+              <input
+                style={inputStyle(errors.dailyCalories)}
+                placeholder="e.g. 2800"
+                value={form.dailyCalories}
+                onChange={e => update('dailyCalories', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('dailyCalories')}
+              />
             </Field>
             <Field label="Daily Water Intake">
-              <input style={inputStyle} placeholder="e.g. 3L/day" value={form.waterIntake} onChange={e => update('waterIntake', e.target.value)} onFocus={onFocus} onBlur={onBlur} />
+              <input
+                style={inputStyle(false)}
+                placeholder="e.g. 3L/day"
+                value={form.waterIntake}
+                onChange={e => update('waterIntake', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('waterIntake')}
+              />
             </Field>
           </div>
           <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 24px', fontStyle: 'italic' }}>
             All dietary fields are optional — you can update them later from the client profile.
           </p>
           <div className="nav-buttons">
-            <Button variant="secondary" onClick={() => setStep(2)}>← Back</Button>
+            <Button variant="secondary" onClick={() => { setErrors({}); setStep(2) }}>← Back</Button>
             <Button onClick={handleNext}>Next: Assign Plan →</Button>
           </div>
         </div>
@@ -386,32 +465,22 @@ export default function NewClientPage() {
       {/* ── STEP 4 — Assign Plan ── */}
       {step === 4 && (
         <div className="form-card">
-          <p style={{ fontSize: '11px', fontWeight: '600', color: '#CCFF00', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Assign Workout Plan
-          </p>
-          <p style={{ fontSize: '13px', color: '#A0A0A0', margin: '0 0 20px' }}>
-            Optional — you can assign a plan later from the client profile.
-          </p>
+          <p style={{ fontSize: '11px', fontWeight: '600', color: '#CCFF00', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Assign Workout Plan</p>
+          <p style={{ fontSize: '13px', color: '#A0A0A0', margin: '0 0 20px' }}>Optional — you can assign a plan later from the client profile.</p>
 
           <input
-            style={{ ...inputStyle, marginBottom: '16px' }}
+            style={{ ...inputStyle(false), marginBottom: '16px' }}
             placeholder="Search plans..."
             value={planSearch}
             onChange={e => setPlanSearch(e.target.value)}
             onFocus={onFocus}
-            onBlur={onBlur}
+            onBlur={onBlur('planSearch')}
           />
 
           <div style={{ border: '1px solid #3A3A3A', borderRadius: '10px', overflow: 'hidden', marginBottom: '24px', maxHeight: '360px', overflowY: 'auto' }}>
-            {/* No Plan Option */}
             <div
               onClick={() => update('plan', null)}
-              style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '14px 16px', borderBottom: '1px solid #3A3A3A', cursor: 'pointer',
-                backgroundColor: form.plan === null ? '#1E2A1A' : 'transparent',
-                transition: 'background 0.15s',
-              }}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid #3A3A3A', cursor: 'pointer', backgroundColor: form.plan === null ? '#1E2A1A' : 'transparent', transition: 'background 0.15s' }}
               onMouseOver={e => { if (form.plan !== null) e.currentTarget.style.backgroundColor = '#2A2A2A' }}
               onMouseOut={e => { e.currentTarget.style.backgroundColor = form.plan === null ? '#1E2A1A' : 'transparent' }}
             >
@@ -425,9 +494,7 @@ export default function NewClientPage() {
             {plans.length === 0 ? (
               <div style={{ padding: '24px', textAlign: 'center', color: '#A0A0A0' }}>
                 <p style={{ fontSize: '13px', margin: 0 }}>No active plans yet.</p>
-                <p style={{ fontSize: '12px', margin: '4px 0 0', color: '#A0A0A0' }}>
-                  Create a workout plan first from the Workouts page.
-                </p>
+                <p style={{ fontSize: '12px', margin: '4px 0 0' }}>Create a workout plan first from the Workouts page.</p>
               </div>
             ) : (
               filteredPlans.map(plan => {
@@ -436,12 +503,7 @@ export default function NewClientPage() {
                   <div
                     key={plan.id}
                     onClick={() => update('plan', plan)}
-                    style={{
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      padding: '14px 16px', borderBottom: '1px solid #3A3A3A', cursor: 'pointer',
-                      backgroundColor: isSelected ? '#1E2A1A' : 'transparent',
-                      transition: 'background 0.15s',
-                    }}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid #3A3A3A', cursor: 'pointer', backgroundColor: isSelected ? '#1E2A1A' : 'transparent', transition: 'background 0.15s' }}
                     onMouseOver={e => { if (!isSelected) e.currentTarget.style.backgroundColor = '#2A2A2A' }}
                     onMouseOut={e => { e.currentTarget.style.backgroundColor = isSelected ? '#1E2A1A' : 'transparent' }}
                   >
@@ -474,7 +536,7 @@ export default function NewClientPage() {
           )}
 
           <div className="nav-buttons">
-            <Button variant="secondary" onClick={() => setStep(3)}>← Back</Button>
+            <Button variant="secondary" onClick={() => { setErrors({}); setStep(3) }}>← Back</Button>
             <Button onClick={handleNext}>Next: Review →</Button>
           </div>
         </div>
@@ -483,12 +545,10 @@ export default function NewClientPage() {
       {/* ── STEP 5 — Review ── */}
       {step === 5 && (
         <div className="form-card">
-          <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 20px' }}>
-            Review Client Details
-          </p>
+          <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 20px' }}>Review Client Details</p>
 
           <p style={{ fontSize: '11px', fontWeight: '600', color: '#CCFF00', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Personal Info</p>
-          <div className="review-grid" style={{ marginBottom: '20px' }}>
+          <div className="review-grid">
             {[
               { label: 'Full Name', value: form.name },
               { label: 'Email',     value: form.email },
@@ -504,11 +564,11 @@ export default function NewClientPage() {
           </div>
 
           <p style={{ fontSize: '11px', fontWeight: '600', color: '#CCFF00', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Body Metrics</p>
-          <div className="review-grid" style={{ marginBottom: '20px' }}>
+          <div className="review-grid">
             {[
-              { label: 'Weight',   value: form.weight  || '—' },
-              { label: 'Height',   value: form.height  || '—' },
-              { label: 'Body Fat', value: form.bodyFat || '—' },
+              { label: 'Weight',   value: form.weight  ? `${form.weight} kg` : '—' },
+              { label: 'Height',   value: form.height  ? `${form.height} cm` : '—' },
+              { label: 'Body Fat', value: form.bodyFat ? `${form.bodyFat}%`  : '—' },
               { label: 'BMI',      value: bmiPreview },
             ].map((item, i) => (
               <div key={i} className="review-item">
@@ -519,11 +579,11 @@ export default function NewClientPage() {
           </div>
 
           <p style={{ fontSize: '11px', fontWeight: '600', color: '#CCFF00', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Diet & Nutrition</p>
-          <div className="review-grid" style={{ marginBottom: '20px' }}>
+          <div className="review-grid">
             {[
               { label: 'Diet Type',      value: form.preference    || '—' },
               { label: 'Allergies',      value: form.allergies     || '—' },
-              { label: 'Daily Calories', value: form.dailyCalories || '—' },
+              { label: 'Daily Calories', value: form.dailyCalories ? `${form.dailyCalories} kcal` : '—' },
               { label: 'Water Intake',   value: form.waterIntake   || '—' },
             ].map((item, i) => (
               <div key={i} className="review-item">

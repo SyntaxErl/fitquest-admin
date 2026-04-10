@@ -15,9 +15,21 @@ const statusStyle = {
   completed: { background: '#1B3240', color: '#93C8F4' },
 }
 
-const avatarColors = ['#4A4458', '#1B3240', '#2C1A1A', '#1B3A2D']
+function Avatar({ name, color = '#CCFF00' }) {
+  const initials = name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'
+  return (
+    <div style={{
+      width: '32px', height: '32px', borderRadius: '50%',
+      background: color, display: 'flex', alignItems: 'center',
+      justifyContent: 'center', fontSize: '11px', fontWeight: '500',
+      color: '#121212', flexShrink: 0,
+    }}>
+      {initials}
+    </div>
+  )
+}
 
-function StatCard({ icon, iconBg, iconColor, value, label, badge, badgeBg, badgeColor }) {
+function StatCard({ icon, iconBg, value, label, badge, badgeBg, badgeColor }) {
   return (
     <div style={{ background: '#2B2930', borderRadius: '16px', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -189,16 +201,13 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {recentClients.map((client, i) => {
+                {recentClients.map((client) => {
                   const s = statusStyle[client.status] || statusStyle.inactive
-                  const initials = client.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'
                   return (
                     <tr key={client.id} className="client-table-row" style={{ borderBottom: '0.5px solid #3A3740' }}>
                       <td style={{ padding: '12px 0' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: avatarColors[i % avatarColors.length], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '500', color: '#CAC4D0', flexShrink: 0 }}>
-                            {initials}
-                          </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <Avatar name={client.name} color={client.avatarColor} />
                           <span style={{ color: '#E6E1E5' }}>{client.name}</span>
                         </div>
                       </td>
