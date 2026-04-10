@@ -7,27 +7,27 @@ import { useAuth } from '@/context/AuthContext'
 import { addExercise, deleteExercise, exercisesQuery } from '@/lib/firestore/exercises'
 
 // ─── Constants ───────────────────────────────────────────────
-const muscles     = ['All','Chest','Back','Legs','Shoulders','Arms','Core','Cardio','Full Body']
-const equipments  = ['All','Barbell','Dumbbell','Cable','Machine','Bodyweight']
-const difficulties = ['All','Beginner','Intermediate','Advanced']
-const categories  = ['All','Compound','Isolation','Cardio']
-const days        = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+const muscles = ['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio', 'Full Body']
+const equipments = ['All', 'Barbell', 'Dumbbell', 'Cable', 'Machine', 'Bodyweight']
+const difficulties = ['All', 'Beginner', 'Intermediate', 'Advanced']
+const categories = ['All', 'Compound', 'Isolation', 'Cardio']
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 const diffStyle = {
-  Beginner:     { bg: '#1B3A2D', color: '#6DD5A0' },
+  Beginner: { bg: '#1B3A2D', color: '#6DD5A0' },
   Intermediate: { bg: '#1B3240', color: '#93C8F4' },
-  Advanced:     { bg: '#3A1B1B', color: '#F28B82' },
+  Advanced: { bg: '#3A1B1B', color: '#F28B82' },
 }
 
 const muscleIcon = {
-  Chest:      '/icons/chest.png',
-  Back:       '/icons/back.png',
-  Legs:       '/icons/legs.png',
-  Shoulders:  '/icons/shoulders.png',
-  Arms:       '/icons/arms.png',
-  Core:       '/icons/core.png',
-  Cardio:     '/icons/cardio.png',
-  'Full Body':'/icons/full-body.png',
+  Chest: '/icons/chest.png',
+  Back: '/icons/back.png',
+  Legs: '/icons/legs.png',
+  Shoulders: '/icons/shoulders.png',
+  Arms: '/icons/arms.png',
+  Core: '/icons/core.png',
+  Cardio: '/icons/cardio.png',
+  'Full Body': '/icons/full-body.png',
 }
 
 // ─── Sub-components ───────────────────────────────────────────
@@ -74,7 +74,7 @@ const FilterRow = ({ label, options, value, onChange }) => (
 )
 
 // ─── Shared styles ────────────────────────────────────────────
-const card   = { background: '#2B2930', borderRadius: '16px', padding: '20px' }
+const card = { background: '#2B2930', borderRadius: '16px', padding: '20px' }
 const inputS = {
   width: '100%', background: '#1C1B1F',
   border: '1px solid #49454F', borderRadius: '12px',
@@ -86,26 +86,26 @@ const labelS = { fontSize: '12px', color: '#938F99', margin: '0 0 6px', display:
 // ─── Main Page ────────────────────────────────────────────────
 export default function ExercisesPage() {
   const { coach } = useAuth()
-  const [exercises, setExercises]           = useState([])
-  const [loading, setLoading]               = useState(true)
-  const [search, setSearch]                 = useState('')
-  const [muscleFilter, setMuscleFilter]     = useState('All')
+  const [exercises, setExercises] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [muscleFilter, setMuscleFilter] = useState('All')
   const [equipmentFilter, setEquipmentFilter] = useState('All')
   const [difficultyFilter, setDifficultyFilter] = useState('All')
   const [categoryFilter, setCategoryFilter] = useState('All')
   const [selectedExercise, setSelectedExercise] = useState(null)
-  const [showAddModal, setShowAddModal]     = useState(false)
+  const [showAddModal, setShowAddModal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
-  const [saving, setSaving]                 = useState(false)
-  const [deleting, setDeleting]             = useState(false)
-  const [view, setView]                     = useState('grid')
-  const [newExercise, setNewExercise]       = useState({ name:'', muscleGroup:'', equipment:'', difficulty:'', category:'', description:'' })
-  const [plans, setPlans]                   = useState([])
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [view, setView] = useState('grid')
+  const [newExercise, setNewExercise] = useState({ name: '', muscleGroup: '', equipment: '', difficulty: '', category: '', description: '' })
+  const [plans, setPlans] = useState([])
   const [showPlanPicker, setShowPlanPicker] = useState(false)
-  const [selectedPlan, setSelectedPlan]     = useState(null)
-  const [selectedDay, setSelectedDay]       = useState('')
-  const [addingToPlan, setAddingToPlan]     = useState(false)
-  const [successMsg, setSuccessMsg]         = useState('')
+  const [selectedPlan, setSelectedPlan] = useState(null)
+  const [selectedDay, setSelectedDay] = useState('')
+  const [addingToPlan, setAddingToPlan] = useState(false)
+  const [successMsg, setSuccessMsg] = useState('')
 
   useEffect(() => {
     return onSnapshot(exercisesQuery(), snap => {
@@ -140,7 +140,7 @@ export default function ExercisesPage() {
     setSaving(true)
     try {
       await addExercise(coach?.uid, newExercise)
-      setNewExercise({ name:'', muscleGroup:'', equipment:'', difficulty:'', category:'', description:'' })
+      setNewExercise({ name: '', muscleGroup: '', equipment: '', difficulty: '', category: '', description: '' })
       setShowAddModal(false)
     } catch (err) { alert('Error adding exercise.'); console.error(err) }
     finally { setSaving(false) }
@@ -195,31 +195,76 @@ export default function ExercisesPage() {
         .ex-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
         .ex-card { background: #2B2930; border-radius: 16px; padding: 20px; cursor: pointer; border: 1px solid transparent; transition: border-color 0.2s; display: flex; flex-direction: column; gap: 12px; }
         .ex-card:hover { border-color: #CCFF00; }
-        .list-head { display: grid; grid-template-columns: 56px 2fr 1fr 1fr 120px 120px; gap: 16px; padding: 0 20px 10px; font-size: 11px; color: #938F99; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-        .list-row { display: grid; grid-template-columns: 56px 2fr 1fr 1fr 120px 120px; gap: 16px; align-items: center; background: #2B2930; border-radius: 16px; padding: 16px 20px; margin-bottom: 8px; cursor: pointer; border: 1px solid transparent; transition: border-color 0.2s; }
-        .list-row:hover { border-color: #CCFF00; }
+
+        /* ── Contained list view ── */
+        .list-wrap { display: flex; flex-direction: column; gap: 6px; }
+        .list-head {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr 110px 110px;
+          gap: 12px;
+          padding: 0 16px 8px;
+          font-size: 11px;
+          color: #49454F;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.6px;
+        }
+        .list-row {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr 110px 110px;
+          gap: 12px;
+          align-items: center;
+          padding: 14px 16px;
+          cursor: pointer;
+          background: #2B2930;
+          border-radius: 12px;
+          border: 1px solid transparent;
+          transition: border-color 0.15s, background 0.15s;
+        }
+        .list-row:hover { border-color: rgba(204,255,0,0.25); background: #302E38; }
+        .list-row:hover .list-name { color: #CCFF00; }
+
         .md-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .md-modal { background: #2B2930; border-radius: 28px; padding: 28px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
         .view-btn { padding: 7px 16px; border-radius: 8px; border: none; font-size: 13px; cursor: pointer; color: #938F99; background: transparent; }
         .view-btn.active { background: #CCFF00; color: rgba(0,0,0,0.6); }
-        .md-btn-filled { padding: 10px 24px; border-radius: 12px; background: #CCFF00; color: #381E72; border: none; font-size: 14px; font-weight: 500; cursor: pointer; }
+        .md-btn-filled { padding: 10px 24px; border-radius: 12px; background: #CCFF00; color: #121212; border: none; font-size: 14px; font-weight: 500; cursor: pointer; }
         .md-btn-text { padding: 10px 24px; border-radius: 12px; background: transparent; color: #D0BCFF; border: none; font-size: 14px; font-weight: 500; cursor: pointer; }
         .md-btn-danger { padding: 10px 24px; border-radius: 12px; background: transparent; color: #F28B82; border: 1px solid #F28B82; font-size: 14px; font-weight: 500; cursor: pointer; }
         .info-tile { background: #1C1B1F; border-radius: 12px; padding: 14px; }
         .info-tile-label { font-size: 11px; color: #938F99; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
         .info-tile-value { font-size: 14px; font-weight: 500; color: #E6E1E5; }
         @media (max-width: 1024px) { .ex-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-        @media (max-width: 600px) { .ex-grid { grid-template-columns: 1fr; } .list-head { display: none; } .list-row { grid-template-columns: 56px 1fr; } }
+        @media (max-width: 700px) {
+          .ex-grid { grid-template-columns: 1fr; }
+          .list-head { display: none; }
+          .list-row { grid-template-columns: 1fr auto; }
+          .list-row .col-muscle, .list-row .col-equip, .list-row .col-cat { display: none; }
+        }
       `}</style>
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h2 style={{ fontSize: '22px', fontWeight: '400', color: '#E6E1E5', margin: '0 0 4px' }}>Exercise library</h2>
-          <p style={{ fontSize: '13px', color: '#938F99', margin: 0 }}>Showing {filtered.length} exercises</p>
+          <p style={{ fontSize: '13px', color: '#121212', margin: 0 }}>Showing {filtered.length} exercises</p>
         </div>
-        <button className="md-btn-filled" onClick={() => setShowAddModal(true)}>+ Create exercise</button>
+        <button
+          className="md-btn-filled flex items-center gap-2"
+          onClick={() => setShowAddModal(true)}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="#121212"
+          >
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+          </svg>
+          Create exercise
+        </button>
       </div>
+
 
       {/* Search */}
       <input
@@ -233,10 +278,10 @@ export default function ExercisesPage() {
 
       {/* Filters */}
       <div style={{ ...card, marginBottom: '20px' }}>
-        <FilterRow label="Muscle group"  options={muscles}      value={muscleFilter}     onChange={setMuscleFilter} />
-        <FilterRow label="Equipment"     options={equipments}   value={equipmentFilter}  onChange={setEquipmentFilter} />
-        <FilterRow label="Difficulty"    options={difficulties} value={difficultyFilter} onChange={setDifficultyFilter} />
-        <FilterRow label="Category"      options={categories}   value={categoryFilter}   onChange={setCategoryFilter} />
+        <FilterRow label="Muscle group" options={muscles} value={muscleFilter} onChange={setMuscleFilter} />
+        <FilterRow label="Equipment" options={equipments} value={equipmentFilter} onChange={setEquipmentFilter} />
+        <FilterRow label="Difficulty" options={difficulties} value={difficultyFilter} onChange={setDifficultyFilter} />
+        <FilterRow label="Category" options={categories} value={categoryFilter} onChange={setCategoryFilter} />
         <button onClick={clearFilters} style={{ fontSize: '12px', color: '#F28B82', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: '500' }}>Clear all filters</button>
       </div>
 
@@ -284,25 +329,42 @@ export default function ExercisesPage() {
         </div>
       )}
 
-      {/* List View */}
+      {/* ── Minimal List View ── */}
       {view === 'list' && filtered.length > 0 && (
-        <div>
+        <div className="list-wrap">
+          {/* Column headers */}
           <div className="list-head">
-            <span></span><span>Exercise</span><span>Muscle</span><span>Equipment</span><span>Category</span><span>Difficulty</span>
+            <span>Exercise</span>
+            <span className="col-muscle">Muscle</span>
+            <span className="col-equip">Equipment</span>
+            <span className="col-cat">Category</span>
+            <span>Difficulty</span>
           </div>
+
+          {/* Rows */}
           {filtered.map(ex => (
             <div key={ex.id} className="list-row" onClick={() => setSelectedExercise(ex)}>
-              <MuscleIcon muscleGroup={ex.muscleGroup} size={48} />
-              <div>
-                <p style={{ fontSize: '14px', fontWeight: '500', color: '#E6E1E5', margin: '0 0 2px' }}>
-                  {ex.name} {ex.isCustom && <span style={{ fontSize: '10px', borderRadius: '6px', padding: '2px 6px', background: '#2D1B69', color: '#B4A7F5', marginLeft: '4px' }}>Custom</span>}
-                </p>
-                <p style={{ fontSize: '12px', color: '#938F99', margin: 0 }}>{ex.description?.slice(0, 60)}...</p>
+              {/* Name + custom badge */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                <span className="list-name" style={{ fontSize: '14px', fontWeight: '500', color: '#E6E1E5', transition: 'color 0.12s', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {ex.name}
+                </span>
+                {ex.isCustom && (
+                  <span style={{ fontSize: '10px', borderRadius: '6px', padding: '2px 7px', background: '#2D1B69', color: '#B4A7F5', flexShrink: 0 }}>Custom</span>
+                )}
               </div>
-              <span style={{ fontSize: '13px', color: '#E6E1E5' }}>{ex.muscleGroup}</span>
-              <span style={{ fontSize: '13px', color: '#938F99' }}>{ex.equipment}</span>
-              <span style={{ fontSize: '11px', background: '#3B3645', color: '#CAC4D0', borderRadius: '8px', padding: '3px 10px', whiteSpace: 'nowrap' }}>{ex.category}</span>
-              <DiffChip difficulty={ex.difficulty} />
+
+              {/* Muscle */}
+              <span className="col-muscle" style={{ fontSize: '13px', color: '#938F99' }}>{ex.muscleGroup}</span>
+
+              {/* Equipment */}
+              <span className="col-equip" style={{ fontSize: '13px', color: '#938F99' }}>{ex.equipment || '—'}</span>
+
+              {/* Category */}
+              <span className="col-cat" style={{ fontSize: '12px', color: '#CAC4D0' }}>{ex.category || '—'}</span>
+
+              {/* Difficulty chip */}
+              <div><DiffChip difficulty={ex.difficulty} /></div>
             </div>
           ))}
         </div>
@@ -312,7 +374,6 @@ export default function ExercisesPage() {
       {selectedExercise && (
         <div className="md-overlay" onClick={closeExerciseModal}>
           <div className="md-modal" onClick={e => e.stopPropagation()}>
-            {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <MuscleIcon muscleGroup={selectedExercise.muscleGroup} size={64} />
@@ -328,7 +389,6 @@ export default function ExercisesPage() {
               <button onClick={closeExerciseModal} style={{ background: 'transparent', border: 'none', color: '#938F99', fontSize: '20px', cursor: 'pointer', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
             </div>
 
-            {/* Info tiles */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
               {[{ label: 'Muscle group', value: selectedExercise.muscleGroup }, { label: 'Equipment', value: selectedExercise.equipment }, { label: 'Category', value: selectedExercise.category }, { label: 'Difficulty', value: selectedExercise.difficulty }].map((item, i) => (
                 <div key={i} className="info-tile">
@@ -338,13 +398,11 @@ export default function ExercisesPage() {
               ))}
             </div>
 
-            {/* Description */}
             <div className="info-tile" style={{ marginBottom: '16px' }}>
               <div className="info-tile-label">Description</div>
               <p style={{ fontSize: '14px', color: '#E6E1E5', margin: '6px 0 0', lineHeight: 1.6 }}>{selectedExercise.description || 'No description available.'}</p>
             </div>
 
-            {/* Sets & Reps */}
             <div className="info-tile" style={{ marginBottom: '20px' }}>
               <div className="info-tile-label" style={{ marginBottom: '12px' }}>Recommended sets & reps</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
@@ -358,7 +416,6 @@ export default function ExercisesPage() {
               </div>
             </div>
 
-            {/* Plan picker / actions */}
             {!showPlanPicker ? (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 {selectedExercise.isCustom
@@ -428,12 +485,10 @@ export default function ExercisesPage() {
               <h3 style={{ fontSize: '20px', fontWeight: '400', color: '#E6E1E5', margin: 0 }}>Add custom exercise</h3>
               <button onClick={() => setShowAddModal(false)} style={{ background: 'transparent', border: 'none', color: '#938F99', fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
-            {[
-              { label: 'Exercise name *', key: 'name', type: 'input', placeholder: 'e.g. Romanian Deadlift' },
-            ].map(f => (
+            {[{ label: 'Exercise name *', key: 'name', placeholder: 'e.g. Romanian Deadlift' }].map(f => (
               <div key={f.key}>
                 <label style={labelS}>{f.label}</label>
-                <input style={inputS} placeholder={f.placeholder} value={newExercise[f.key]} onChange={e => setNewExercise({ ...newExercise, [f.key]: e.target.value })} onFocus={e => e.target.style.borderColor='#D0BCFF'} onBlur={e => e.target.style.borderColor='#49454F'} />
+                <input style={inputS} placeholder={f.placeholder} value={newExercise[f.key]} onChange={e => setNewExercise({ ...newExercise, [f.key]: e.target.value })} onFocus={e => e.target.style.borderColor = '#D0BCFF'} onBlur={e => e.target.style.borderColor = '#49454F'} />
               </div>
             ))}
             {[
@@ -444,14 +499,14 @@ export default function ExercisesPage() {
             ].map(f => (
               <div key={f.key}>
                 <label style={labelS}>{f.label}</label>
-                <select style={inputS} value={newExercise[f.key]} onChange={e => setNewExercise({ ...newExercise, [f.key]: e.target.value })} onFocus={e => e.target.style.borderColor='#D0BCFF'} onBlur={e => e.target.style.borderColor='#49454F'}>
+                <select style={inputS} value={newExercise[f.key]} onChange={e => setNewExercise({ ...newExercise, [f.key]: e.target.value })} onFocus={e => e.target.style.borderColor = '#D0BCFF'} onBlur={e => e.target.style.borderColor = '#49454F'}>
                   <option value="">Select...</option>
                   {f.opts.filter(o => o !== 'All').map(o => <option key={o}>{o}</option>)}
                 </select>
               </div>
             ))}
             <label style={labelS}>Description</label>
-            <textarea style={{ ...inputS, height: '80px', resize: 'vertical' }} placeholder="Describe this exercise..." value={newExercise.description} onChange={e => setNewExercise({ ...newExercise, description: e.target.value })} onFocus={e => e.target.style.borderColor='#D0BCFF'} onBlur={e => e.target.style.borderColor='#49454F'} />
+            <textarea style={{ ...inputS, height: '80px', resize: 'vertical' }} placeholder="Describe this exercise..." value={newExercise.description} onChange={e => setNewExercise({ ...newExercise, description: e.target.value })} onFocus={e => e.target.style.borderColor = '#D0BCFF'} onBlur={e => e.target.style.borderColor = '#49454F'} />
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
               <button className="md-btn-text" onClick={() => setShowAddModal(false)}>Cancel</button>
               <button className="md-btn-filled" onClick={handleAddExercise} disabled={saving}>{saving ? 'Adding...' : 'Add exercise'}</button>
@@ -465,7 +520,7 @@ export default function ExercisesPage() {
         <div className="md-overlay">
           <div className="md-modal" style={{ maxWidth: '400px', textAlign: 'center' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#3A1B1B', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="#F28B82"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="#F28B82"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg>
             </div>
             <h3 style={{ fontSize: '20px', fontWeight: '400', color: '#E6E1E5', margin: '0 0 8px' }}>Delete exercise?</h3>
             <p style={{ fontSize: '14px', color: '#938F99', margin: '0 0 24px', lineHeight: 1.5 }}>

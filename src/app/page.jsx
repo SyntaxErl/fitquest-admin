@@ -13,11 +13,11 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [emailFocused, setEmailFocused] = useState(false)
+  const [passFocused, setPassFocused] = useState(false)
   const router = useRouter()
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  useEffect(() => { setMounted(true) }, [])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -31,14 +31,11 @@ export default function LoginPage() {
         case 'auth/invalid-credential':
         case 'auth/wrong-password':
         case 'auth/user-not-found':
-          setError('Invalid email or password.')
-          break
+          setError('Invalid email or password.'); break
         case 'auth/too-many-requests':
-          setError('Too many attempts. Try again later.')
-          break
+          setError('Too many attempts. Try again later.'); break
         case 'auth/network-request-failed':
-          setError('Network error. Check your connection.')
-          break
+          setError('Network error. Check your connection.'); break
         default:
           setError('Something went wrong. Please try again.')
       }
@@ -62,171 +59,315 @@ export default function LoginPage() {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
-
-        /* Custom keyframes */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         @keyframes pulse1 {
-          0%, 100% { transform: scale(1) translate(0, 0); opacity: 1; }
-          50% { transform: scale(1.15) translate(-20px, 20px); opacity: 0.7; }
+          0%, 100% { transform: scale(1) translate(0,0); opacity: 1; }
+          50% { transform: scale(1.15) translate(-20px,20px); opacity: 0.7; }
         }
         @keyframes pulse2 {
-          0%, 100% { transform: scale(1) translate(0, 0); opacity: 1; }
-          50% { transform: scale(1.2) translate(20px, -20px); opacity: 0.5; }
+          0%, 100% { transform: scale(1) translate(0,0); opacity: 1; }
+          50% { transform: scale(1.2) translate(20px,-20px); opacity: 0.5; }
         }
         @keyframes dot-bounce {
           0%, 80%, 100% { transform: translateY(0); }
           40% { transform: translateY(-6px); }
         }
+        input::placeholder { color: #4A4A4A; }
+        input:focus { outline: none; }
+        .fq-left { display: flex; }
+        .fq-divider { display: block; }
+        @media (max-width: 900px) {
+          .fq-left { display: none !important; }
+          .fq-divider { display: none !important; }
+          .fq-right { width: 100% !important; padding: 32px 0 !important; }
+          .fq-wrapper { justify-content: center !important; }
+        }
+        .fq-forgot:hover { color: #CCFF00; }
+        .fq-submit:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(204,255,0,0.3);
+          background-color: #D8FF1A;
+        }
+        .fq-submit:active:not(:disabled) { transform: translateY(0); }
       `}</style>
 
-      {/* Root Layout */}
-      <div
-        className="min-h-screen bg-[#0A0A0A] flex justify-center overflow-hidden relative text-white box-border"
-        style={{ fontFamily: "'DM Sans', sans-serif" }}
-      >
+      {/* Root */}
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#0A0A0A',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        position: 'relative',
+        color: '#fff',
+        fontFamily: "'DM Sans', sans-serif",
+        padding: '24px',
+      }}>
 
-        {/* Animated background glows */}
-        <div className="fixed inset-0 pointer-events-none z-0">
-          <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(204,255,0,0.12)_0%,transparent_70%)] animate-[pulse1_6s_ease-in-out_infinite]" />
-          <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(204,255,0,0.07)_0%,transparent_70%)] animate-[pulse2_8s_ease-in-out_infinite]" />
-        </div>
+        {/* Background glows */}
+        <div style={{
+          position: 'fixed', top: '-20%', right: '-10%',
+          width: '600px', height: '600px', pointerEvents: 'none', zIndex: 0,
+          background: 'radial-gradient(circle, rgba(204,255,0,0.12) 0%, transparent 70%)',
+          animation: 'pulse1 6s ease-in-out infinite',
+        }} />
+        <div style={{
+          position: 'fixed', bottom: '-20%', left: '-10%',
+          width: '500px', height: '500px', pointerEvents: 'none', zIndex: 0,
+          background: 'radial-gradient(circle, rgba(204,255,0,0.07) 0%, transparent 70%)',
+          animation: 'pulse2 8s ease-in-out infinite',
+        }} />
 
-        {/* Grid texture */}
-        <div className="fixed inset-0 z-0 bg-[linear-gradient(rgba(204,255,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(204,255,0,0.03)_1px,transparent_1px)] bg-[size:48px_48px]" />
+        {/* Grid */}
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 0,
+          backgroundImage: 'linear-gradient(rgba(204,255,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(204,255,0,0.03) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+        }} />
 
-        {/* Content Wrapper - Widened slightly for better breathing room */}
-        <div className="flex w-full max-w-[1400px] relative z-10">
+        {/* Wrapper */}
+        <div className="fq-wrapper" style={{
+          display: 'flex',
+          width: '100%',
+          maxWidth: '1200px',
+          position: 'relative',
+          zIndex: 10,
+          alignItems: 'center',
+        }}>
 
           {/* Left Panel */}
-          <div className="hidden min-[900px]:flex flex-1 flex-col justify-center px-[80px]">
-
-            <div className={`text-[11px] font-semibold tracking-[0.25em] text-[#CCFF00] uppercase mb-[32px] flex items-center gap-[10px] before:content-[''] before:block before:w-[32px] before:h-[2px] before:bg-[#CCFF00] transition-all duration-[600ms] ease-out delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[20px]'}`}>
+          <div className="fq-left" style={{
+            flex: 1,
+            flexDirection: 'column',
+            justifyContent: 'center',
+            paddingRight: '60px',
+            opacity: mounted ? 1 : 0,
+            transition: 'opacity 0.6s ease-out',
+          }}>
+            <div style={{
+              fontSize: '11px', fontWeight: 600, letterSpacing: '0.25em',
+              color: '#CCFF00', textTransform: 'uppercase', marginBottom: '32px',
+              display: 'flex', alignItems: 'center', gap: '10px',
+              transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+              transition: 'all 0.6s ease-out 0.1s',
+            }}>
+              <span style={{ display: 'block', width: '32px', height: '2px', backgroundColor: '#CCFF00' }} />
               Coach Portal
             </div>
 
-            <h1
-              className={`text-[clamp(72px,8vw,120px)] leading-[0.9] text-white tracking-[0.02em] mb-[32px] transition-all duration-700 ease-out delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[30px]'}`}
-              style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-            >
+            <h1 style={{
+              fontSize: 'clamp(64px, 7vw, 110px)',
+              lineHeight: 0.9,
+              color: '#fff',
+              letterSpacing: '0.02em',
+              marginBottom: '32px',
+              fontFamily: "'Bebas Neue', sans-serif",
+              transform: mounted ? 'translateY(0)' : 'translateY(30px)',
+              transition: 'all 0.7s ease-out 0.2s',
+            }}>
               TRAIN
-              <span className="text-[#CCFF00] block">SMARTER.</span>
+              <span style={{ color: '#CCFF00', display: 'block' }}>SMARTER.</span>
             </h1>
 
-            <p className={`text-[15px] font-light text-[#6B6B6B] leading-[1.7] max-w-[360px] mb-[48px] transition-all duration-700 ease-out delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[20px]'}`}>
+            <p style={{
+              fontSize: '15px', fontWeight: 300, color: '#6B6B6B',
+              lineHeight: 1.7, maxWidth: '360px', marginBottom: '48px',
+              transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+              transition: 'all 0.7s ease-out 0.3s',
+            }}>
               The all-in-one platform for fitness coaches to manage clients,
               build workout programs, and track real results.
             </p>
 
-            <div className={`flex gap-[48px] transition-all duration-700 ease-out delay-[400ms] ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[20px]'}`}>
-              <div className="flex flex-col">
-                <div className="text-[36px] text-[#CCFF00] leading-none tracking-[0.02em]" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>100%</div>
-                <div className="text-[11px] text-[#4A4A4A] tracking-[0.1em] uppercase mt-[6px]">Real-time sync</div>
-              </div>
-              <div className="flex flex-col">
-                <div className="text-[36px] text-[#CCFF00] leading-none tracking-[0.02em]" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>360°</div>
-                <div className="text-[11px] text-[#4A4A4A] tracking-[0.1em] uppercase mt-[6px]">Client view</div>
-              </div>
-              <div className="flex flex-col">
-                <div className="text-[36px] text-[#CCFF00] leading-none tracking-[0.02em]" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>24/7</div>
-                <div className="text-[11px] text-[#4A4A4A] tracking-[0.1em] uppercase mt-[6px]">Access</div>
-              </div>
+            <div style={{
+              display: 'flex', gap: '40px',
+              transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+              transition: 'all 0.7s ease-out 0.4s',
+            }}>
+              {[['100%', 'Real-time sync'], ['360°', 'Client view'], ['24/7', 'Access']].map(([num, label]) => (
+                <div key={label}>
+                  <div style={{ fontSize: '36px', color: '#CCFF00', lineHeight: 1, fontFamily: "'Bebas Neue', sans-serif" }}>{num}</div>
+                  <div style={{ fontSize: '11px', color: '#4A4A4A', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '6px' }}>{label}</div>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Divider */}
-          <div className="hidden min-[900px]:block w-[1px] bg-[linear-gradient(to_bottom,transparent,rgba(204,255,0,0.2),transparent)] mx-[20px] self-stretch" />
+          <div className="fq-divider" style={{
+            width: '1px',
+            flexShrink: 0,
+            alignSelf: 'stretch',
+            background: 'linear-gradient(to bottom, transparent, rgba(204,255,0,0.2), transparent)',
+            margin: '0 40px',
+          }} />
 
-          {/* Right Panel - Made slightly wider (520px) to prevent squishing */}
-          <div className="w-full min-[900px]:w-[520px] flex items-center justify-center py-[32px] px-[24px] min-[900px]:py-[48px] min-[900px]:pr-[48px] min-[900px]:pl-[20px]">
+          {/* Right Panel */}
+          <div className="fq-right" style={{
+            width: '460px',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '40px 0',
+          }}>
 
-            {/* Form Card - Increased inner padding (px-[48px] py-[56px]) */}
-            <div className={`w-full bg-[rgba(18,18,18,0.8)] border border-[rgba(255,255,255,0.06)] rounded-[24px] py-[56px] px-[48px] backdrop-blur-[24px] shadow-[0_0_0_1px_rgba(204,255,0,0.05),0_40px_80px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-[800ms] ease-out delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[40px]'}`}>
+            {/* Card */}
+            <div style={{
+              width: '100%',
+              backgroundColor: 'rgba(18,18,18,0.8)',
+              border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: '24px',
+              padding: '48px 40px',
+              backdropFilter: 'blur(24px)',
+              boxShadow: '0 0 0 1px rgba(204,255,0,0.05), 0 40px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
+              opacity: mounted ? 1 : 0,
+              transform: mounted ? 'translateY(0)' : 'translateY(40px)',
+              transition: 'all 0.8s ease-out 0.2s',
+            }}>
 
-              {/* Logo */}
-              <div className="flex items-center gap-[12px] mb-[40px]">
-                <Image
-                  src="/logo.png"
-                  alt="FitQuest"
-                  width={36}
-                  height={36}
-                  className="rounded-[10px]"
-                />
-                <span className="text-[28px] text-white tracking-[0.05em]" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>FitQuest</span>
-                <span className="text-[10px] font-semibold tracking-[0.15em] text-[#CCFF00] bg-[rgba(204,255,0,0.1)] border border-[rgba(204,255,0,0.2)] px-[8px] py-[3px] rounded-[4px] uppercase">Coach</span>
+              {/* Logo row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '36px' }}>
+                <Image src="/logo.png" alt="FitQuest" width={36} height={36} style={{ borderRadius: '10px' }} />
+                <span style={{ fontSize: '28px', color: '#fff', letterSpacing: '0.05em', fontFamily: "'Bebas Neue', sans-serif" }}>FitQuest</span>
+                <span style={{
+                  fontSize: '10px', fontWeight: 600, letterSpacing: '0.15em', color: '#CCFF00',
+                  backgroundColor: 'rgba(204,255,0,0.1)', border: '1px solid rgba(204,255,0,0.2)',
+                  padding: '3px 8px', borderRadius: '4px', textTransform: 'uppercase',
+                }}>Coach</span>
               </div>
 
-              <h2 className="text-[40px] text-white tracking-[0.03em] mb-[8px]" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>Welcome Back</h2>
-              <p className="text-[14px] text-[#6B6B6B] mb-[40px] font-light">Sign in to your coaching dashboard</p>
+              <h2 style={{ fontSize: '40px', color: '#fff', letterSpacing: '0.03em', marginBottom: '8px', fontFamily: "'Bebas Neue', sans-serif" }}>
+                Welcome Back
+              </h2>
+              <p style={{ fontSize: '14px', color: '#6B6B6B', marginBottom: '36px', fontWeight: 300 }}>
+                Sign in to your coaching dashboard
+              </p>
 
               {/* Error */}
               {error && (
-                <div className="bg-[rgba(255,95,31,0.08)] border border-[rgba(255,95,31,0.2)] rounded-[10px] py-[12px] px-[14px] mb-[24px] flex items-center gap-[8px]">
-                  <span className="text-[14px]">⚠️</span>
-                  <span className="text-[13px] text-[#FF5F1F] font-normal">{error}</span>
+                <div style={{
+                  backgroundColor: 'rgba(255,95,31,0.08)', border: '1px solid rgba(255,95,31,0.2)',
+                  borderRadius: '10px', padding: '12px 14px', marginBottom: '24px',
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                }}>
+                  <span>⚠️</span>
+                  <span style={{ fontSize: '13px', color: '#FF5F1F' }}>{error}</span>
                 </div>
               )}
 
               <form onSubmit={handleLogin}>
 
                 {/* Email */}
-                <div className="mb-[24px]">
-                  <label className="text-[11px] font-semibold tracking-[0.12em] text-[#6B6B6B] uppercase mb-[10px] block">Email Address</label>
-                  <div className="relative">
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{
+                    fontSize: '11px', fontWeight: 600, letterSpacing: '0.12em',
+                    color: '#6B6B6B', textTransform: 'uppercase', marginBottom: '10px', display: 'block',
+                  }}>Email Address</label>
+                  <div style={{ position: 'relative' }}>
                     <input
-                      className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.07)] rounded-[14px] py-[16px] pl-[16px] pr-[44px] text-[14px] font-normal text-white outline-none transition-all duration-200 placeholder:text-[#4A4A4A] focus:border-[rgba(204,255,0,0.4)] focus:bg-[rgba(204,255,0,0.03)] focus:shadow-[0_0_0_3px_rgba(204,255,0,0.06)]"
                       type="email"
                       placeholder="coach@fitquest.com"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
+                      onFocus={() => setEmailFocused(true)}
+                      onBlur={() => setEmailFocused(false)}
                       required
+                      style={{
+                        width: '100%',
+                        backgroundColor: emailFocused ? 'rgba(204,255,0,0.03)' : 'rgba(255,255,255,0.03)',
+                        border: emailFocused ? '1px solid rgba(204,255,0,0.4)' : '1px solid rgba(255,255,255,0.07)',
+                        borderRadius: '14px',
+                        padding: '15px 44px 15px 16px',
+                        fontSize: '14px',
+                        color: '#fff',
+                        outline: 'none',
+                        transition: 'all 0.2s',
+                        boxShadow: emailFocused ? '0 0 0 3px rgba(204,255,0,0.06)' : 'none',
+                      }}
                     />
-                    <span className="absolute right-[16px] top-1/2 -translate-y-1/2 text-[#4A4A4A] text-[16px] cursor-pointer transition-colors duration-200 hover:text-[#CCFF00] select-none leading-none">✉</span>
+                    <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#4A4A4A', fontSize: '16px', lineHeight: 1 }}>✉</span>
                   </div>
                 </div>
 
                 {/* Password */}
-                <div className="mb-[24px]">
-                  <label className="text-[11px] font-semibold tracking-[0.12em] text-[#6B6B6B] uppercase mb-[10px] block">Password</label>
-                  <div className="relative">
+                <div style={{ marginBottom: '8px' }}>
+                  <label style={{
+                    fontSize: '11px', fontWeight: 600, letterSpacing: '0.12em',
+                    color: '#6B6B6B', textTransform: 'uppercase', marginBottom: '10px', display: 'block',
+                  }}>Password</label>
+                  <div style={{ position: 'relative' }}>
                     <input
-                      className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.07)] rounded-[14px] py-[16px] pl-[16px] pr-[44px] text-[14px] font-normal text-white outline-none transition-all duration-200 placeholder:text-[#4A4A4A] focus:border-[rgba(204,255,0,0.4)] focus:bg-[rgba(204,255,0,0.03)] focus:shadow-[0_0_0_3px_rgba(204,255,0,0.06)]"
                       type={showPass ? 'text' : 'password'}
                       placeholder="Enter your password"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
+                      onFocus={() => setPassFocused(true)}
+                      onBlur={() => setPassFocused(false)}
                       required
+                      style={{
+                        width: '100%',
+                        backgroundColor: passFocused ? 'rgba(204,255,0,0.03)' : 'rgba(255,255,255,0.03)',
+                        border: passFocused ? '1px solid rgba(204,255,0,0.4)' : '1px solid rgba(255,255,255,0.07)',
+                        borderRadius: '14px',
+                        padding: '15px 44px 15px 16px',
+                        fontSize: '14px',
+                        color: '#fff',
+                        outline: 'none',
+                        transition: 'all 0.2s',
+                        boxShadow: passFocused ? '0 0 0 3px rgba(204,255,0,0.06)' : 'none',
+                      }}
                     />
                     <span
-                      className="absolute right-[16px] top-1/2 -translate-y-1/2 text-[#4A4A4A] text-[16px] cursor-pointer transition-colors duration-200 hover:text-[#CCFF00] select-none leading-none"
                       onClick={() => setShowPass(!showPass)}
+                      style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#4A4A4A', fontSize: '16px', cursor: 'pointer', lineHeight: 1 }}
                     >{showPass ? '🙈' : '👁'}</span>
                   </div>
-                  <div className="flex justify-end mt-[12px]">
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
                     <button
                       type="button"
-                      className="text-[12px] text-[#6B6B6B] bg-transparent border-none cursor-pointer transition-colors duration-200 hover:text-[#CCFF00] p-0"
+                      className="fq-forgot"
                       onClick={handleForgotPassword}
+                      style={{ fontSize: '12px', color: '#6B6B6B', background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.2s' }}
                     >Forgot password?</button>
                   </div>
                 </div>
 
-                {/* Submit - Added explicit rounded-[14px] and padding */}
+                {/* Submit */}
                 <button
                   type="submit"
-                  className="w-full bg-[#CCFF00] text-[#0A0A0A] border-none rounded-[14px] py-[16px] text-[15px] font-bold tracking-[0.08em] uppercase cursor-pointer mt-[32px] relative overflow-hidden transition-all duration-200 before:content-[''] before:absolute before:inset-0 before:bg-[linear-gradient(135deg,rgba(255,255,255,0.15)_0%,transparent_60%)] before:pointer-events-none enabled:hover:-translate-y-0.5 enabled:hover:shadow-[0_8px_24px_rgba(204,255,0,0.3)] enabled:hover:bg-[#D8FF1A] enabled:active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="fq-submit"
                   disabled={loading}
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#CCFF00',
+                    color: '#0A0A0A',
+                    border: 'none',
+                    borderRadius: '14px',
+                    padding: '16px',
+                    fontSize: '15px',
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    marginTop: '28px',
+                    opacity: loading ? 0.5 : 1,
+                    transition: 'all 0.2s',
+                  }}
                 >
                   {loading ? (
-                    <span className="inline-flex gap-[6px] items-center">
-                      <span className="w-[6px] h-[6px] bg-[#0A0A0A] rounded-full animate-[dot-bounce_1.2s_ease-in-out_infinite]" />
-                      <span className="w-[6px] h-[6px] bg-[#0A0A0A] rounded-full animate-[dot-bounce_1.2s_ease-in-out_infinite] [animation-delay:0.2s]" />
-                      <span className="w-[6px] h-[6px] bg-[#0A0A0A] rounded-full animate-[dot-bounce_1.2s_ease-in-out_infinite] [animation-delay:0.4s]" />
+                    <span style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                      {['0s', '0.2s', '0.4s'].map((delay, i) => (
+                        <span key={i} style={{ width: '6px', height: '6px', backgroundColor: '#0A0A0A', borderRadius: '50%', animation: `dot-bounce 1.2s ease-in-out ${delay} infinite` }} />
+                      ))}
                     </span>
                   ) : 'Sign In →'}
                 </button>
 
               </form>
 
-              <p className="text-center mt-[32px] text-[12px] text-[#4A4A4A]">
+              <p style={{ textAlign: 'center', marginTop: '28px', fontSize: '12px', color: '#4A4A4A' }}>
                 FitQuest Workout Management System © 2026
               </p>
             </div>

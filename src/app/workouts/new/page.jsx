@@ -11,31 +11,44 @@ import Button from '@/components/ui/button'
 const days    = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
 const muscles = ['all','Chest','Back','Legs','Shoulders','Arms','Core','Cardio','Full Body']
 
+const Field = ({ label, error, children }) => (
+  <div>
+    <p style={{ fontSize: '12px', color: error ? '#FF5F5F' : '#A0A0A0', margin: '0 0 8px' }}>{label}</p>
+    {children}
+    {error && (
+      <p style={{ fontSize: '11px', color: '#FF5F5F', margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <span>⚠</span> {error}
+      </p>
+    )}
+  </div>
+)
+
 export default function NewWorkoutPage() {
   const router = useRouter()
   const { coach } = useAuth()
 
-  const [step, setStep]                       = useState(1)
-  const [saving, setSaving]                   = useState(false)
-  const [planInfo, setPlanInfo]               = useState({ name: '', type: '', weeks: '', sessions: '', description: '' })
-  const [selectedDay, setSelectedDay]         = useState('Monday')
-  const [schedule, setSchedule]               = useState({})
-  const [restDays, setRestDays]               = useState([])
+  const [step, setStep]                             = useState(1)
+  const [saving, setSaving]                         = useState(false)
+  const [planInfo, setPlanInfo]                     = useState({ name: '', type: '', weeks: '', sessions: '', description: '' })
+  const [selectedDay, setSelectedDay]               = useState('Monday')
+  const [schedule, setSchedule]                     = useState({})
+  const [restDays, setRestDays]                     = useState([])
   const [showExercisePicker, setShowExercisePicker] = useState(false)
-  const [exerciseSearch, setExerciseSearch]   = useState('')
-  const [muscleFilter, setMuscleFilter]       = useState('all')
+  const [exerciseSearch, setExerciseSearch]         = useState('')
+  const [muscleFilter, setMuscleFilter]             = useState('all')
+  const [errors, setErrors]                         = useState({})
+  const [scheduleError, setScheduleError]           = useState('')
+  const [exerciseErrors, setExerciseErrors]         = useState({}) // { 'Monday-0-sets': 'msg' }
 
-  // Real exercise data from Firestore
-  const [exerciseLibrary, setExerciseLibrary]     = useState([])
-  const [loadingExercises, setLoadingExercises]   = useState(true)
+  const [exerciseLibrary, setExerciseLibrary]   = useState([])
+  const [loadingExercises, setLoadingExercises] = useState(true)
 
   useEffect(() => {
     const q = query(collection(db, 'exercises'), orderBy('createdAt', 'asc'))
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setExerciseLibrary(snapshot.docs.map(d => ({ id: d.id, ...d.data() })))
+    return onSnapshot(q, snap => {
+      setExerciseLibrary(snap.docs.map(d => ({ id: d.id, ...d.data() })))
       setLoadingExercises(false)
     })
-    return () => unsubscribe()
   }, [])
 
   const filteredExercises = exerciseLibrary.filter(e => {
@@ -48,19 +61,21 @@ export default function NewWorkoutPage() {
     setSchedule(prev => {
       const dayExercises = prev[selectedDay] || []
       if (dayExercises.find(e => e.name === exercise.name)) return prev
-      return {
-        ...prev,
-        [selectedDay]: [
-          ...dayExercises,
-          { ...exercise, sets: 3, reps: '10', weight: '' }
-        ]
-      }
+      return { ...prev, [selectedDay]: [...dayExercises, { ...exercise, sets: 3, reps: '10', weight: '' }] }
     })
+    setScheduleError('')
     setShowExercisePicker(false)
   }
 
   const removeExercise = (day, index) => {
     setSchedule(prev => ({ ...prev, [day]: prev[day].filter((_, i) => i !== index) }))
+    // Clear errors for removed exercise
+    setExerciseErrors(prev => {
+      const next = { ...prev }
+      delete next[`${day}-${index}-sets`]
+      delete next[`${day}-${index}-reps`]
+      return next
+    })
   }
 
   const updateExercise = (day, index, field, value) => {
@@ -68,37 +83,106 @@ export default function NewWorkoutPage() {
       ...prev,
       [day]: prev[day].map((ex, i) => i === index ? { ...ex, [field]: value } : ex)
     }))
+    // Clear error on change
+    const key = `${day}-${index}-${field}`
+    if (exerciseErrors[key]) setExerciseErrors(prev => ({ ...prev, [key]: '' }))
+  }
+
+  const updatePlanInfo = (key, value) => {
+    setPlanInfo(prev => ({ ...prev, [key]: value }))
+    if (errors[key]) setErrors(prev => ({ ...prev, [key]: '' }))
   }
 
   const totalExercises = Object.values(schedule).reduce((sum, day) => sum + day.length, 0)
   const activeDays     = Object.keys(schedule).filter(d => schedule[d]?.length > 0)
 
+  // ── Step 1 Validation ──────────────────────────────────────
+  const validateStep1 = () => {
+    const e = {}
+    if (!planInfo.name.trim())
+      e.name = 'Plan name is required.'
+    else if (planInfo.name.trim().length < 3)
+      e.name = 'Plan name must be at least 3 characters.'
+
+    if (!planInfo.type)
+      e.type = 'Please select a plan type.'
+
+    if (!planInfo.weeks)
+      e.weeks = 'Duration is required.'
+    else if (isNaN(planInfo.weeks) || parseInt(planInfo.weeks) < 1)
+      e.weeks = 'Duration must be at least 1 week.'
+    else if (parseInt(planInfo.weeks) > 52)
+      e.weeks = 'Duration cannot exceed 52 weeks.'
+
+    if (!planInfo.sessions)
+      e.sessions = 'Please select sessions per week.'
+
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
+
+  // ── Step 2 Validation ──────────────────────────────────────
+  const validateStep2 = () => {
+    if (totalExercises === 0) {
+      setScheduleError('Add at least one exercise before continuing.')
+      return false
+    }
+
+    // Validate sets/reps for every exercise in the schedule
+    const exErrors = {}
+    for (const day of days) {
+      const dayExercises = schedule[day] || []
+      dayExercises.forEach((ex, i) => {
+        if (!ex.sets || isNaN(ex.sets) || parseInt(ex.sets) < 1)
+          exErrors[`${day}-${i}-sets`] = 'Min 1'
+        else if (parseInt(ex.sets) > 20)
+          exErrors[`${day}-${i}-sets`] = 'Max 20'
+
+        if (!ex.reps || !ex.reps.toString().trim())
+          exErrors[`${day}-${i}-reps`] = 'Required'
+      })
+    }
+
+    setExerciseErrors(exErrors)
+    if (Object.keys(exErrors).length > 0) {
+      setScheduleError('Some exercises have invalid sets or reps. Please fix them.')
+      return false
+    }
+
+    setScheduleError('')
+    return true
+  }
+
+  const inputStyle = (hasError) => ({
+    width: '100%', backgroundColor: '#121212',
+    border: `1px solid ${hasError ? '#FF5F5F' : '#3A3A3A'}`,
+    borderRadius: '8px', padding: '10px 14px',
+    color: '#FFFFFF', fontSize: '14px',
+    outline: 'none', boxSizing: 'border-box',
+    transition: 'border-color 0.15s',
+  })
+
+  const onFocus = e => { if (!e.target.style.borderColor.includes('FF5F5F')) e.target.style.borderColor = '#CCFF00' }
+  const onBlur  = (key) => e => { if (!errors[key]) e.target.style.borderColor = '#3A3A3A' }
+
   const handleSavePlan = async () => {
     setSaving(true)
     try {
       const planId = await addWorkoutPlan(coach.uid, planInfo)
-
       const { doc, setDoc } = await import('firebase/firestore')
       const { db } = await import('@/lib/firebase')
-
       for (const day of days) {
         const dayKey    = day.toLowerCase()
         const isRest    = restDays.includes(day)
         const exercises = schedule[day] || []
         await setDoc(doc(db, 'workoutPlans', planId, 'schedule', dayKey), {
-          day: dayKey,
-          isRestDay: isRest,
+          day: dayKey, isRestDay: isRest,
           exercises: exercises.map(ex => ({
-            name:        ex.name,
-            muscleGroup: ex.muscleGroup,
-            equipment:   ex.equipment,
-            sets:        Number(ex.sets),
-            reps:        ex.reps,
-            weight:      ex.weight || '',
+            name: ex.name, muscleGroup: ex.muscleGroup, equipment: ex.equipment,
+            sets: Number(ex.sets), reps: ex.reps, weight: ex.weight || '',
           })),
         })
       }
-
       router.push('/workouts')
     } catch (err) {
       alert('Error saving plan. Please try again.')
@@ -108,30 +192,24 @@ export default function NewWorkoutPage() {
     }
   }
 
-  const inputStyle = {
-    width: '100%', backgroundColor: '#121212',
-    border: '1px solid #3A3A3A', borderRadius: '8px',
-    padding: '10px 14px', color: '#FFFFFF', fontSize: '14px',
-    outline: 'none', boxSizing: 'border-box',
-  }
-
   return (
     <div style={{ width: '100%', maxWidth: '860px', boxSizing: 'border-box' }}>
-
       <style>{`
-        .day-tab { padding: 8px 14px; border-radius: 8px; border: 1px solid #3A3A3A; background: transparent; color: #A0A0A0; font-size: 13px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-        .ex-row { display: grid; grid-template-columns: 1fr 70px 70px 90px 36px; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid #3A3A3A; }
+        .ex-row { display: grid; grid-template-columns: 1fr 80px 80px 100px 36px; align-items: start; gap: 8px; padding: 12px 0; border-bottom: 1px solid #2A2A2A; }
         .ex-input { background: #121212; border: 1px solid #3A3A3A; border-radius: 6px; padding: 6px 8px; color: #FFFFFF; font-size: 12px; outline: none; width: 100%; text-align: center; box-sizing: border-box; }
         .ex-input:focus { border-color: #CCFF00; }
-        .remove-btn { background: transparent; border: none; color: #A0A0A0; font-size: 16px; cursor: pointer; }
+        .ex-input.error { border-color: #FF5F5F; }
+        .ex-input-err { font-size: 10px; color: #FF5F5F; text-align: center; margin-top: 3px; }
+        .remove-btn { background: transparent; border: none; color: #A0A0A0; font-size: 16px; cursor: pointer; padding: 6px; }
         .remove-btn:hover { color: #FF5F1F; }
         .exercise-picker-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
         .exercise-picker-item:hover { background: #3A3A3A; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .modal { background: rgb(43, 41, 48); border: 1px solid rgb(43, 41, 48); border-radius: 16px; padding: 24px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
+        .modal { background: rgb(43,41,48); border-radius: 16px; padding: 24px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
         .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .error-banner { background: rgba(255,95,95,0.08); border: 1px solid rgba(255,95,95,0.25); border-radius: 10px; padding: 12px 14px; margin-bottom: 20px; font-size: 13px; color: #FF5F5F; display: flex; align-items: center; gap: 8px; }
         @media (max-width: 600px) {
-          .ex-row { grid-template-columns: 1fr 55px 55px 36px; }
+          .ex-row { grid-template-columns: 1fr 60px 60px 36px; }
           .summary-grid { grid-template-columns: 1fr 1fr; }
         }
       `}</style>
@@ -152,74 +230,94 @@ export default function NewWorkoutPage() {
         {[{ n: 1, label: 'Plan Info' }, { n: 2, label: 'Build Schedule' }, { n: 3, label: 'Review' }].map((s, i, arr) => (
           <div key={s.n} style={{ display: 'flex', alignItems: 'center', flex: i < arr.length - 1 ? 1 : 'none' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{
-                width: '32px', height: '32px', borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '13px', fontWeight: '600',
-                backgroundColor: step >= s.n ? '#CCFF00' : '#2C2C2C',
-                color: step >= s.n ? '#121212' : '#A0A0A0',
-                border: step >= s.n ? 'none' : '1px solid #3A3A3A',
-              }}>{step > s.n ? '✓' : s.n}</div>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '600', backgroundColor: step >= s.n ? '#CCFF00' : '#2C2C2C', color: step >= s.n ? '#121212' : '#A0A0A0', border: step >= s.n ? 'none' : '1px solid #3A3A3A' }}>
+                {step > s.n ? '✓' : s.n}
+              </div>
               <span style={{ fontSize: '11px', marginTop: '6px', color: step >= s.n ? '#CCFF00' : '#A0A0A0' }}>{s.label}</span>
             </div>
-            {i < arr.length - 1 && (
-              <div style={{ flex: 1, height: '2px', backgroundColor: step > s.n ? '#CCFF00' : '#3A3A3A', marginBottom: '18px' }} />
-            )}
+            {i < arr.length - 1 && <div style={{ flex: 1, height: '2px', backgroundColor: step > s.n ? '#CCFF00' : '#3A3A3A', marginBottom: '18px' }} />}
           </div>
         ))}
       </div>
 
-      {/* STEP 1 — Plan Info */}
+      {/* ── STEP 1 — Plan Info ── */}
       {step === 1 && (
-        <div style={{ backgroundColor: 'rgb(43, 41, 48)', border: '1px solid rgb(43, 41, 48)', borderRadius: '16px', padding: '28px' }}>
+        <div style={{ backgroundColor: 'rgb(43,41,48)', borderRadius: '16px', padding: '28px' }}>
           <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 20px' }}>Plan Details</p>
+
+          {Object.keys(errors).length > 0 && (
+            <div className="error-banner">⚠ Please fix the errors below before continuing.</div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-            <div>
-              <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Plan Name</p>
-              <input style={inputStyle} placeholder="e.g. Strength Phase 1" value={planInfo.name} onChange={e => setPlanInfo({ ...planInfo, name: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'} />
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Plan Type</p>
-              <select style={inputStyle} value={planInfo.type} onChange={e => setPlanInfo({ ...planInfo, type: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'}>
+            <Field label="Plan Name *" error={errors.name}>
+              <input
+                style={inputStyle(errors.name)}
+                placeholder="e.g. Strength Phase 1"
+                value={planInfo.name}
+                onChange={e => updatePlanInfo('name', e.target.value)}
+                onFocus={onFocus} onBlur={onBlur('name')}
+              />
+            </Field>
+            <Field label="Plan Type *" error={errors.type}>
+              <select
+                style={inputStyle(errors.type)}
+                value={planInfo.type}
+                onChange={e => updatePlanInfo('type', e.target.value)}
+                onFocus={onFocus} onBlur={onBlur('type')}
+              >
                 <option value="">Select type</option>
                 <option>Strength</option>
                 <option>Fat Loss</option>
                 <option>Hypertrophy</option>
                 <option>General Fitness</option>
               </select>
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Duration (weeks)</p>
-              <input style={inputStyle} type="number" placeholder="e.g. 8" value={planInfo.weeks} onChange={e => setPlanInfo({ ...planInfo, weeks: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'} />
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Sessions per Week</p>
-              <select style={inputStyle} value={planInfo.sessions} onChange={e => setPlanInfo({ ...planInfo, sessions: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'}>
+            </Field>
+            <Field label="Duration (weeks) *" error={errors.weeks}>
+              <input
+                style={inputStyle(errors.weeks)}
+                type="number" min="1" max="52"
+                placeholder="e.g. 8"
+                value={planInfo.weeks}
+                onChange={e => updatePlanInfo('weeks', e.target.value)}
+                onFocus={onFocus} onBlur={onBlur('weeks')}
+              />
+            </Field>
+            <Field label="Sessions per Week *" error={errors.sessions}>
+              <select
+                style={inputStyle(errors.sessions)}
+                value={planInfo.sessions}
+                onChange={e => updatePlanInfo('sessions', e.target.value)}
+                onFocus={onFocus} onBlur={onBlur('sessions')}
+              >
                 <option value="">Select sessions</option>
                 {[1,2,3,4,5,6,7].map(n => <option key={n} value={n}>{n} session{n > 1 ? 's' : ''}/week</option>)}
               </select>
-            </div>
+            </Field>
           </div>
-          <div style={{ marginBottom: '24px' }}>
-            <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 8px' }}>Description (optional)</p>
-            <textarea style={{ ...inputStyle, height: '90px', resize: 'vertical' }} placeholder="Describe this workout plan..." value={planInfo.description} onChange={e => setPlanInfo({ ...planInfo, description: e.target.value })} onFocus={e => e.target.style.borderColor = '#CCFF00'} onBlur={e => e.target.style.borderColor = '#3A3A3A'} />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button onClick={() => {
-              if (!planInfo.name || !planInfo.type || !planInfo.weeks || !planInfo.sessions) {
-                alert('Please fill in all required fields.')
-                return
-              }
-              setStep(2)
-            }}>Next: Build Schedule →</Button>
+
+          <Field label="Description (optional)">
+            <textarea
+              style={{ ...inputStyle(false), height: '90px', resize: 'vertical' }}
+              placeholder="Describe this workout plan..."
+              value={planInfo.description}
+              onChange={e => updatePlanInfo('description', e.target.value)}
+              onFocus={onFocus} onBlur={onBlur('description')}
+            />
+          </Field>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+            <Button onClick={() => { if (validateStep1()) { setErrors({}); setStep(2) } }}>
+              Next: Build Schedule →
+            </Button>
           </div>
         </div>
       )}
 
-      {/* STEP 2 — Build Schedule */}
+      {/* ── STEP 2 — Build Schedule ── */}
       {step === 2 && (
         <div>
-          <div style={{ backgroundColor: 'rgb(43, 41, 48)', border: '1px solid rgb(43, 41, 48)', borderRadius: '16px', padding: '24px', marginBottom: '16px' }}>
+          <div style={{ backgroundColor: 'rgb(43,41,48)', borderRadius: '16px', padding: '24px', marginBottom: '16px' }}>
 
             {/* Plan summary */}
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '20px', padding: '12px 16px', backgroundColor: '#121212', borderRadius: '10px' }}>
@@ -229,6 +327,11 @@ export default function NewWorkoutPage() {
               <span style={{ fontSize: '13px', color: '#A0A0A0' }}>{planInfo.sessions} sessions/wk</span>
             </div>
 
+            {/* Schedule-level error */}
+            {scheduleError && (
+              <div className="error-banner">⚠ {scheduleError}</div>
+            )}
+
             {/* Day Tabs */}
             <p style={{ fontSize: '13px', color: '#A0A0A0', margin: '0 0 12px' }}>Select a day to add exercises:</p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
@@ -236,20 +339,18 @@ export default function NewWorkoutPage() {
                 const isRest     = restDays.includes(day)
                 const isSelected = selectedDay === day
                 const hasEx      = (schedule[day] || []).length > 0
+                // Check if this day has exercise errors
+                const hasDayError = Object.keys(exerciseErrors).some(k => k.startsWith(`${day}-`))
                 return (
-                  <button
-                    key={day}
-                    onClick={() => setSelectedDay(day)}
-                    style={{
-                      padding: '8px 14px', borderRadius: '8px', fontSize: '13px',
-                      cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
-                      border: isSelected ? '1px solid #CCFF00' : hasEx ? '1px solid #CCFF0066' : '1px solid #3A3A3A',
-                      backgroundColor: isSelected ? '#CCFF00' : isRest ? '#2A1A1A' : 'transparent',
-                      color: isSelected ? '#121212' : isRest ? '#FF5F1F' : hasEx ? '#CCFF00' : '#A0A0A0',
-                      fontWeight: isSelected ? '600' : '400',
-                    }}
-                  >
-                    {day.slice(0, 3)}{isRest && ' 🛌'}
+                  <button key={day} onClick={() => setSelectedDay(day)} style={{
+                    padding: '8px 14px', borderRadius: '8px', fontSize: '13px',
+                    cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
+                    border: isSelected ? '1px solid #CCFF00' : hasDayError ? '1px solid #FF5F5F' : hasEx ? '1px solid #CCFF0066' : '1px solid #3A3A3A',
+                    backgroundColor: isSelected ? '#CCFF00' : isRest ? '#2A1A1A' : 'transparent',
+                    color: isSelected ? '#121212' : isRest ? '#FF5F1F' : hasDayError ? '#FF5F5F' : hasEx ? '#CCFF00' : '#A0A0A0',
+                    fontWeight: isSelected || hasDayError ? '600' : '400',
+                  }}>
+                    {day.slice(0, 3)}{isRest ? ' 🛌' : hasDayError ? ' ⚠' : ''}
                   </button>
                 )
               })}
@@ -261,7 +362,10 @@ export default function NewWorkoutPage() {
                 <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: 0 }}>{selectedDay}</p>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
-                    onClick={() => setRestDays(prev => prev.includes(selectedDay) ? prev.filter(d => d !== selectedDay) : [...prev, selectedDay])}
+                    onClick={() => {
+                      setRestDays(prev => prev.includes(selectedDay) ? prev.filter(d => d !== selectedDay) : [...prev, selectedDay])
+                      setScheduleError('')
+                    }}
                     style={{ backgroundColor: 'transparent', border: `1px solid ${restDays.includes(selectedDay) ? '#FF5F1F' : '#3A3A3A'}`, borderRadius: '8px', padding: '7px 14px', color: restDays.includes(selectedDay) ? '#FF5F1F' : '#A0A0A0', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
                   >{restDays.includes(selectedDay) ? '✕ Remove Rest' : '🛌 Set Rest Day'}</button>
                   {!restDays.includes(selectedDay) && (
@@ -283,46 +387,68 @@ export default function NewWorkoutPage() {
                 </div>
               ) : (
                 <>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 70px 70px 90px 36px', gap: '8px', padding: '6px 0', fontSize: '11px', color: '#A0A0A0', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #3A3A3A' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 80px 100px 36px', gap: '8px', padding: '6px 0', fontSize: '11px', color: '#A0A0A0', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #3A3A3A' }}>
                     <span>Exercise</span><span style={{ textAlign: 'center' }}>Sets</span><span style={{ textAlign: 'center' }}>Reps</span><span style={{ textAlign: 'center' }}>Weight</span><span></span>
                   </div>
-                  {schedule[selectedDay].map((ex, i) => (
-                    <div key={i} className="ex-row">
-                      <div>
-                        <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{ex.name}</p>
-                        <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{ex.muscleGroup} · {ex.equipment}</p>
+                  {schedule[selectedDay].map((ex, i) => {
+                    const setsErr   = exerciseErrors[`${selectedDay}-${i}-sets`]
+                    const repsErr   = exerciseErrors[`${selectedDay}-${i}-reps`]
+                    return (
+                      <div key={i} className="ex-row">
+                        <div>
+                          <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{ex.name}</p>
+                          <p style={{ fontSize: '11px', color: '#A0A0A0', margin: 0 }}>{ex.muscleGroup} · {ex.equipment}</p>
+                        </div>
+                        <div>
+                          <input
+                            className={`ex-input${setsErr ? ' error' : ''}`}
+                            type="number" min="1" max="20"
+                            value={ex.sets}
+                            onChange={e => updateExercise(selectedDay, i, 'sets', e.target.value)}
+                          />
+                          {setsErr && <div className="ex-input-err">{setsErr}</div>}
+                        </div>
+                        <div>
+                          <input
+                            className={`ex-input${repsErr ? ' error' : ''}`}
+                            placeholder="10"
+                            value={ex.reps}
+                            onChange={e => updateExercise(selectedDay, i, 'reps', e.target.value)}
+                          />
+                          {repsErr && <div className="ex-input-err">{repsErr}</div>}
+                        </div>
+                        <input
+                          className="ex-input"
+                          placeholder="kg / BW"
+                          value={ex.weight}
+                          onChange={e => updateExercise(selectedDay, i, 'weight', e.target.value)}
+                        />
+                        <button className="remove-btn" onClick={() => removeExercise(selectedDay, i)}>✕</button>
                       </div>
-                      <input className="ex-input" type="number" value={ex.sets} onChange={e => updateExercise(selectedDay, i, 'sets', e.target.value)} />
-                      <input className="ex-input" value={ex.reps} onChange={e => updateExercise(selectedDay, i, 'reps', e.target.value)} />
-                      <input className="ex-input" placeholder="kg/BW" value={ex.weight} onChange={e => updateExercise(selectedDay, i, 'weight', e.target.value)} />
-                      <button className="remove-btn" onClick={() => removeExercise(selectedDay, i)}>✕</button>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </>
               )}
             </div>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Button variant="secondary" onClick={() => setStep(1)}>← Back</Button>
-            <Button onClick={() => {
-              if (totalExercises === 0) { alert('Please add at least one exercise.'); return }
-              setStep(3)
-            }}>Next: Review →</Button>
+            <Button variant="secondary" onClick={() => { setErrors({}); setScheduleError(''); setStep(1) }}>← Back</Button>
+            <Button onClick={() => { if (validateStep2()) setStep(3) }}>Next: Review →</Button>
           </div>
         </div>
       )}
 
-      {/* STEP 3 — Review */}
+      {/* ── STEP 3 — Review ── */}
       {step === 3 && (
-        <div style={{ backgroundColor: 'rgb(43, 41, 48)', border: '1px solid rgb(43, 41, 48)', borderRadius: '16px', padding: '28px' }}>
+        <div style={{ backgroundColor: 'rgb(43,41,48)', borderRadius: '16px', padding: '28px' }}>
           <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 20px' }}>Review Your Plan</p>
           <div className="summary-grid">
             {[
-              { label: 'Plan Name', value: planInfo.name },
-              { label: 'Type',      value: planInfo.type },
-              { label: 'Duration',  value: `${planInfo.weeks} weeks` },
-              { label: 'Sessions',  value: `${planInfo.sessions}/week` },
+              { label: 'Plan Name',   value: planInfo.name },
+              { label: 'Type',        value: planInfo.type },
+              { label: 'Duration',    value: `${planInfo.weeks} weeks` },
+              { label: 'Sessions',    value: `${planInfo.sessions}/week` },
               { label: 'Active Days', value: activeDays.length },
               { label: 'Exercises',   value: totalExercises },
             ].map((s, i) => (
@@ -334,13 +460,15 @@ export default function NewWorkoutPage() {
           </div>
 
           <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 12px' }}>Weekly Schedule</p>
-          {activeDays.map(day => (
+          {activeDays.length === 0 ? (
+            <p style={{ fontSize: '13px', color: '#A0A0A0' }}>No exercises scheduled.</p>
+          ) : activeDays.map(day => (
             <div key={day} style={{ marginBottom: '16px' }}>
               <p style={{ fontSize: '13px', fontWeight: '600', color: '#CCFF00', margin: '0 0 8px' }}>{day}</p>
               {schedule[day].map((ex, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #3A3A3A', fontSize: '13px' }}>
                   <span style={{ color: '#FFFFFF' }}>{ex.name}</span>
-                  <span style={{ color: '#A0A0A0' }}>{ex.sets} sets × {ex.reps} reps {ex.weight ? `@ ${ex.weight}` : ''}</span>
+                  <span style={{ color: '#A0A0A0' }}>{ex.sets} sets × {ex.reps} reps{ex.weight ? ` @ ${ex.weight}` : ''}</span>
                 </div>
               ))}
             </div>
@@ -355,9 +483,7 @@ export default function NewWorkoutPage() {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px' }}>
             <Button variant="secondary" onClick={() => setStep(2)}>← Back</Button>
-            <Button onClick={handleSavePlan} disabled={saving}>
-              {saving ? 'Saving...' : 'Save Plan ✓'}
-            </Button>
+            <Button onClick={handleSavePlan} disabled={saving}>{saving ? 'Saving...' : 'Save Plan ✓'}</Button>
           </div>
         </div>
       )}
@@ -388,7 +514,7 @@ export default function NewWorkoutPage() {
                 <p style={{ color: '#A0A0A0', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>Loading exercises...</p>
               ) : filteredExercises.length === 0 ? (
                 <p style={{ color: '#A0A0A0', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>No exercises found</p>
-              ) : filteredExercises.map((ex) => (
+              ) : filteredExercises.map(ex => (
                 <div key={ex.id} className="exercise-picker-item" onClick={() => addExercise(ex)}>
                   <div>
                     <p style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{ex.name}</p>

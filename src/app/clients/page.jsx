@@ -9,8 +9,6 @@ import { addClient, clientsQuery } from '@/lib/firestore/clients'
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 
 // ─── Constants ─────────────────────────────────────────────────
-const avatarColors = ['#4A4458','#1B3240','#1B3A2D','#2D1B69','#3A2A10','#2A1A3A','#1A3240','#3A1B2D']
-
 const statusStyle = {
   active:    { bg: '#1B3A2D', color: '#6DD5A0' },
   inactive:  { bg: '#3A3740', color: '#938F99' },
@@ -98,7 +96,7 @@ export default function ClientsPage() {
         .client-row:hover { border-color: rgb(204, 255, 0); }
         .client-card { display: none; background: #2B2930; border-radius: 16px; padding: 18px; margin-bottom: 10px; border: 1px solid transparent; transition: border-color 0.2s; }
         .client-card:hover { border-color: #D0BCFF; }
-        .md-btn-filled { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 12px; background: rgb(204, 255, 0); color: #381E72; border: none; font-size: 14px; font-weight: 500; cursor: pointer; }
+        .md-btn-filled { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 12px; background: rgb(204, 255, 0); color: #121212; border: none; font-size: 14px; font-weight: 500; cursor: pointer; }
         .info-tile { background: #1C1B1F; border-radius: 10px; padding: 10px 12px; }
         @media (max-width: 900px) { .table-head { display: none; } .client-row { display: none; } .client-card { display: block; } }
         @media (max-width: 600px) { .search-row { flex-direction: column; align-items: stretch; } }
