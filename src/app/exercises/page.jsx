@@ -150,7 +150,7 @@ export default function ExercisesPage() {
     if (!showDeleteConfirm) return
     setDeleting(true)
     try {
-      await deleteExercise(showDeleteConfirm.id)
+      await deleteExercise(showDeleteConfirm.id, coach?.uid, showDeleteConfirm.name)
       setShowDeleteConfirm(null); setSelectedExercise(null)
     } catch (err) { alert('Error deleting exercise.'); console.error(err) }
     finally { setDeleting(false) }
@@ -218,7 +218,7 @@ export default function ExercisesPage() {
           <h2 style={{ fontSize: '22px', fontWeight: '400', color: '#E6E1E5', margin: '0 0 4px' }}>Exercise library</h2>
           <p style={{ fontSize: '13px', color: '#938F99', margin: 0 }}>Showing {filtered.length} exercises</p>
         </div>
-        <button className="md-btn-filled" onClick={() => setShowAddModal(true)}>+ Add exercise</button>
+        <button className="md-btn-filled" onClick={() => setShowAddModal(true)}>+ Create exercise</button>
       </div>
 
       {/* Search */}

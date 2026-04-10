@@ -46,16 +46,32 @@ export async function addClient(coachId, clientData) {
 }
 
 // Update a client
-export async function updateClient(clientId, data) {
+export async function updateClient(clientId, data, coachId, clientName) {
   await updateDoc(doc(db, 'clients', clientId), {
     ...data,
     updatedAt: serverTimestamp(),
   })
+  if (coachId && clientName) {
+    await createNotification(coachId, {
+      type:       'client_updated',
+      message:    `✏️ ${clientName}'s profile has been updated`,
+      clientId,
+      clientName,
+    })
+  }
 }
 
 // Delete a client
-export async function deleteClient(clientId) {
+export async function deleteClient(clientId, coachId, clientName) {
   await deleteDoc(doc(db, 'clients', clientId))
+  if (coachId && clientName) {
+    await createNotification(coachId, {
+      type:       'client_deleted',
+      message:    `🗑️ Client ${clientName} has been removed`,
+      clientId:   null,
+      clientName,
+    })
+  }
 }
 
 // Query helpers
