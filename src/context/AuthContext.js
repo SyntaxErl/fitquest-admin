@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
         if (coachDoc.exists()) {
           setCoach({ uid: user.uid, ...coachDoc.data() })
         } else {
-          setCoach(null)
+           setCoach({ uid: user.uid, name: user.displayName, email: user.email, role: 'Coach' })
         }
       } else {
         // Clear session cookie on logout

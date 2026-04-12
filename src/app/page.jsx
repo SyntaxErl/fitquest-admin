@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
+import SignUpModal from '@/components/SignupModal'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [mounted, setMounted] = useState(false)
   const [emailFocused, setEmailFocused] = useState(false)
   const [passFocused, setPassFocused] = useState(false)
+  const [showSignUp, setShowSignUp] = useState(false)
   const router = useRouter()
 
   useEffect(() => { setMounted(true) }, [])
@@ -366,6 +368,16 @@ export default function LoginPage() {
                 </button>
 
               </form>
+              <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '12px', color: '#4A4A4A' }}>
+                New coach?{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowSignUp(true)}
+                  style={{ background: 'none', border: 'none', color: '#CCFF00', cursor: 'pointer', fontSize: '12px', padding: 0 }}
+                >
+                  Create an account
+                </button>
+              </p>
 
               <p style={{ textAlign: 'center', marginTop: '28px', fontSize: '12px', color: '#4A4A4A' }}>
                 FitQuest Workout Management System © 2026
@@ -375,6 +387,12 @@ export default function LoginPage() {
 
         </div>
       </div>
+      {showSignUp && (
+        <SignUpModal
+          onClose={() => setShowSignUp(false)}
+          onSwitchToLogin={() => setShowSignUp(false)}
+        />
+      )}
     </>
   )
 }
