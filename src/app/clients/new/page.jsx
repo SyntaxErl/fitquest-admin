@@ -9,10 +9,10 @@ import { db } from '@/lib/firebase'
 import Button from '@/components/ui/button'
 
 const typeColors = {
-  'Strength':       '#CCFF00',
-  'Fat Loss':       '#FF5F1F',
-  'Hypertrophy':    '#60AFFF',
-  'General Fitness':'#A78BFA',
+  'Strength': '#CCFF00',
+  'Fat Loss': '#FF5F1F',
+  'Hypertrophy': '#60AFFF',
+  'General Fitness': '#A78BFA',
 }
 
 const steps = [
@@ -39,26 +39,18 @@ export default function NewClientPage() {
   const router = useRouter()
   const { coach } = useAuth()
 
-  const [step, setStep]     = useState(1)
+  const [step, setStep] = useState(1)
   const [saving, setSaving] = useState(false)
-  const [plans, setPlans]   = useState([])
+  const [plans, setPlans] = useState([])
   const [planSearch, setPlanSearch] = useState('')
   const [errors, setErrors] = useState({})
 
   const [form, setForm] = useState({
-    name:          '',
-    email:         '',
-    phone:         '',
-    goal:          '',
-    status:        'active',
-    weight:        '',
-    height:        '',
-    bodyFat:       '',
-    preference:    '',
-    allergies:     '',
-    dailyCalories: '',
-    waterIntake:   '',
-    plan:          null,
+    name: '', email: '', phone: '', goal: '', status: 'active',
+    password: '', confirmPassword: '',      // ← add these
+    weight: '', height: '', bodyFat: '',
+    preference: '', allergies: '', dailyCalories: '', waterIntake: '',
+    plan: null,
   })
 
   useEffect(() => {
@@ -92,28 +84,37 @@ export default function NewClientPage() {
   const isValidPhone = (phone) => !phone || /^[\d\s\+\-\(\)]{7,20}$/.test(phone)
   const isPositiveNumber = (val) => !val || (!isNaN(val) && parseFloat(val) > 0)
 
-  const validateStep1 = () => {
-    const e = {}
-    if (!form.name.trim())
-      e.name = 'Full name is required.'
-    else if (form.name.trim().length < 2)
-      e.name = 'Name must be at least 2 characters.'
+const validateStep1 = () => {
+  const e = {}
+  if (!form.name.trim())
+    e.name = 'Full name is required.'
+  else if (form.name.trim().length < 2)
+    e.name = 'Name must be at least 2 characters.'
 
-    if (!form.email.trim())
-      e.email = 'Email address is required.'
-    else if (!isValidEmail(form.email))
-      e.email = 'Enter a valid email address.'
+  if (!form.email.trim())
+    e.email = 'Email address is required.'
+  else if (!isValidEmail(form.email))
+    e.email = 'Enter a valid email address.'
 
-    if (form.phone && !isValidPhone(form.phone))
-      e.phone = 'Enter a valid phone number.'
+  if (form.phone && !isValidPhone(form.phone))
+    e.phone = 'Enter a valid phone number.'
 
-    if (!form.goal)
-      e.goal = 'Please select a fitness goal.'
+  if (!form.goal)
+    e.goal = 'Please select a fitness goal.'
 
-    setErrors(e)
-    return Object.keys(e).length === 0
-  }
+  if (!form.password)
+    e.password = 'Please set a temporary password.'
+  else if (form.password.length < 6)
+    e.password = 'Password must be at least 6 characters.'
 
+  if (!form.confirmPassword)
+    e.confirmPassword = 'Please confirm the password.'
+  else if (form.password !== form.confirmPassword)
+    e.confirmPassword = 'Passwords do not match.'
+
+  setErrors(e)
+  return Object.keys(e).length === 0
+}
   const validateStep2 = () => {
     const e = {}
     if (!form.weight.trim())
@@ -153,14 +154,13 @@ export default function NewClientPage() {
     return Object.keys(e).length === 0
   }
 
-  const handleNext = () => {
-    let valid = true
-    if (step === 1) valid = validateStep1()
-    if (step === 2) valid = validateStep2()
-    if (step === 3) valid = validateStep3()
-    if (valid) { setErrors({}); setStep(s => s + 1) }
-  }
-
+ const handleNext = () => {
+  let valid = true
+  if (step === 1) valid = validateStep1()
+  if (step === 2) valid = validateStep2()
+  if (step === 3) valid = validateStep3()
+  if (valid) { setErrors({}); setStep(s => s + 1) }
+}
   const handleSave = async () => {
     setSaving(true)
     try {
@@ -277,6 +277,7 @@ export default function NewClientPage() {
                 onBlur={onBlur('name')}
               />
             </Field>
+
             <Field label="Email Address *" error={errors.email}>
               <input
                 type="email"
@@ -288,6 +289,7 @@ export default function NewClientPage() {
                 onBlur={onBlur('email')}
               />
             </Field>
+
             <Field label="Phone Number" error={errors.phone}>
               <input
                 style={inputStyle(errors.phone)}
@@ -298,6 +300,7 @@ export default function NewClientPage() {
                 onBlur={onBlur('phone')}
               />
             </Field>
+
             <Field label="Fitness Goal *" error={errors.goal}>
               <select
                 style={inputStyle(errors.goal)}
@@ -313,6 +316,33 @@ export default function NewClientPage() {
                 <option>General Fitness</option>
               </select>
             </Field>
+
+            {/* 🔥 ADDED PASSWORD FIELD */}
+            <Field label="Temporary Password *" error={errors.password}>
+              <input
+                type="password"
+                style={inputStyle(errors.password)}
+                placeholder="Min. 6 characters"
+                value={form.password}
+                onChange={e => update('password', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('password')}
+              />
+            </Field>
+
+            {/* 🔥 ADDED CONFIRM PASSWORD FIELD */}
+            <Field label="Confirm Password *" error={errors.confirmPassword}>
+              <input
+                type="password"
+                style={inputStyle(errors.confirmPassword)}
+                placeholder="Re-enter password"
+                value={form.confirmPassword}
+                onChange={e => update('confirmPassword', e.target.value)}
+                onFocus={onFocus}
+                onBlur={onBlur('confirmPassword')}
+              />
+            </Field>
+
             <Field label="Initial Status">
               <select
                 style={inputStyle(false)}
@@ -326,9 +356,11 @@ export default function NewClientPage() {
               </select>
             </Field>
           </div>
+
           <div className="nav-buttons" style={{ justifyContent: 'flex-end' }}>
             <Button onClick={handleNext}>Next: Body Metrics →</Button>
           </div>
+
         </div>
       )}
 
@@ -382,14 +414,15 @@ export default function NewClientPage() {
           {bmiPreview !== '—' && (
             <div style={{ backgroundColor: '#121212', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
               <p style={{ fontSize: '12px', color: '#A0A0A0', margin: '0 0 6px' }}>BMI Category</p>
-              <p style={{ fontSize: '14px', fontWeight: '600', margin: 0, color:
-                parseFloat(bmiPreview) < 18.5 ? '#60AFFF' :
-                parseFloat(bmiPreview) < 25   ? '#CCFF00' :
-                parseFloat(bmiPreview) < 30   ? '#FF5F1F' : '#FF3333'
+              <p style={{
+                fontSize: '14px', fontWeight: '600', margin: 0, color:
+                  parseFloat(bmiPreview) < 18.5 ? '#60AFFF' :
+                    parseFloat(bmiPreview) < 25 ? '#CCFF00' :
+                      parseFloat(bmiPreview) < 30 ? '#FF5F1F' : '#FF3333'
               }}>
                 {parseFloat(bmiPreview) < 18.5 ? '🔵 Underweight' :
-                 parseFloat(bmiPreview) < 25   ? '🟢 Normal weight' :
-                 parseFloat(bmiPreview) < 30   ? '🟠 Overweight' : '🔴 Obese'}
+                  parseFloat(bmiPreview) < 25 ? '🟢 Normal weight' :
+                    parseFloat(bmiPreview) < 30 ? '🟠 Overweight' : '🔴 Obese'}
               </p>
             </div>
           )}
@@ -551,10 +584,11 @@ export default function NewClientPage() {
           <div className="review-grid">
             {[
               { label: 'Full Name', value: form.name },
-              { label: 'Email',     value: form.email },
-              { label: 'Phone',     value: form.phone   || '—' },
-              { label: 'Goal',      value: form.goal    || '—' },
-              { label: 'Status',    value: form.status },
+              { label: 'Email', value: form.email },
+              { label: 'Password', value: '••••••••' },
+              { label: 'Phone', value: form.phone || '—' },
+              { label: 'Goal', value: form.goal || '—' },
+              { label: 'Status', value: form.status },
             ].map((item, i) => (
               <div key={i} className="review-item">
                 <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 4px', textTransform: 'uppercase' }}>{item.label}</p>
@@ -566,10 +600,10 @@ export default function NewClientPage() {
           <p style={{ fontSize: '11px', fontWeight: '600', color: '#CCFF00', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Body Metrics</p>
           <div className="review-grid">
             {[
-              { label: 'Weight',   value: form.weight  ? `${form.weight} kg` : '—' },
-              { label: 'Height',   value: form.height  ? `${form.height} cm` : '—' },
-              { label: 'Body Fat', value: form.bodyFat ? `${form.bodyFat}%`  : '—' },
-              { label: 'BMI',      value: bmiPreview },
+              { label: 'Weight', value: form.weight ? `${form.weight} kg` : '—' },
+              { label: 'Height', value: form.height ? `${form.height} cm` : '—' },
+              { label: 'Body Fat', value: form.bodyFat ? `${form.bodyFat}%` : '—' },
+              { label: 'BMI', value: bmiPreview },
             ].map((item, i) => (
               <div key={i} className="review-item">
                 <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 4px', textTransform: 'uppercase' }}>{item.label}</p>
@@ -581,10 +615,10 @@ export default function NewClientPage() {
           <p style={{ fontSize: '11px', fontWeight: '600', color: '#CCFF00', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Diet & Nutrition</p>
           <div className="review-grid">
             {[
-              { label: 'Diet Type',      value: form.preference    || '—' },
-              { label: 'Allergies',      value: form.allergies     || '—' },
+              { label: 'Diet Type', value: form.preference || '—' },
+              { label: 'Allergies', value: form.allergies || '—' },
               { label: 'Daily Calories', value: form.dailyCalories ? `${form.dailyCalories} kcal` : '—' },
-              { label: 'Water Intake',   value: form.waterIntake   || '—' },
+              { label: 'Water Intake', value: form.waterIntake || '—' },
             ].map((item, i) => (
               <div key={i} className="review-item">
                 <p style={{ fontSize: '11px', color: '#A0A0A0', margin: '0 0 4px', textTransform: 'uppercase' }}>{item.label}</p>

@@ -7,13 +7,32 @@ import { createNotification } from '@/lib/firestore/notifications'
 
 const avatarColors = ['#CCFF00','#FF5F1F','#60AFFF','#FF6B6B','#FFD700','#A78BFA','#34D399','#F472B6']
 
-// Add a new client
-
 export async function addClient(coachId, clientData) {
   const avatarColor = avatarColors[Math.floor(Math.random() * avatarColors.length)]
 
+  // Step 1 — Create Firebase Auth account for the trainee
+  let traineeUid = null
+  if (clientData.email && clientData.password) {
+    const res = await fetch('/api/create-client-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email:    clientData.email,
+        password: clientData.password,
+        name:     clientData.name,
+      }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to create account')
+    }
+    traineeUid = data.uid
+  }
+
+  // Step 2 — Create Firestore client document
   const ref = await addDoc(collection(db, 'clients'), {
     coachId,
+    uid:              traineeUid,
     name:             clientData.name,
     email:            clientData.email,
     phone:            clientData.phone         || '',
@@ -34,10 +53,10 @@ export async function addClient(coachId, clientData) {
     waterIntake:      clientData.waterIntake   || '',
   })
 
-  // 🔔 Create notification
+  // Step 3 — Notify coach
   await createNotification(coachId, {
     type:       'client_joined',
-    message:    `New client ${clientData.name} has been added to your roster`,
+    message:    `👤 New client ${clientData.name} added to your roster`,
     clientId:   ref.id,
     clientName: clientData.name,
   })
@@ -45,7 +64,6 @@ export async function addClient(coachId, clientData) {
   return ref.id
 }
 
-// Update a client
 export async function updateClient(clientId, data, coachId, clientName) {
   await updateDoc(doc(db, 'clients', clientId), {
     ...data,
@@ -61,7 +79,6 @@ export async function updateClient(clientId, data, coachId, clientName) {
   }
 }
 
-// Delete a client
 export async function deleteClient(clientId, coachId, clientName) {
   await deleteDoc(doc(db, 'clients', clientId))
   if (coachId && clientName) {
@@ -74,7 +91,6 @@ export async function deleteClient(clientId, coachId, clientName) {
   }
 }
 
-// Query helpers
 export function clientsQuery(coachId) {
   return query(
     collection(db, 'clients'),

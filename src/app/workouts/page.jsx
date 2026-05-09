@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { onSnapshot, deleteDoc, doc } from 'firebase/firestore'
+import { onSnapshot, deleteDoc, doc, collection, query, where } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/context/AuthContext'
 import { workoutPlansQuery, updateWorkoutPlan, deleteWorkoutPlan } from '@/lib/firestore/workoutPlans'
@@ -57,6 +57,7 @@ export default function WorkoutsPage() {
   const router = useRouter()
   const { coach } = useAuth()
   const [plans, setPlans]                     = useState([])
+  const [clientCounts, setClientCounts]       = useState({})
   const [loading, setLoading]                 = useState(true)
   const [search, setSearch]                   = useState('')
   const [filter, setFilter]                   = useState('all')
@@ -70,6 +71,23 @@ export default function WorkoutsPage() {
     return onSnapshot(workoutPlansQuery(coach.uid), snap => {
       setPlans(snap.docs.map(d => ({ id: d.id, ...d.data() })))
       setLoading(false)
+    })
+  }, [coach?.uid])
+
+  // ─── Real-time client counts ───────────────────────────────
+  useEffect(() => {
+    if (!coach?.uid) return
+    const q = query(
+      collection(db, 'clients'),
+      where('coachId', '==', coach.uid)
+    )
+    return onSnapshot(q, snap => {
+      const counts = {}
+      snap.docs.forEach(d => {
+        const planId = d.data().assignedPlanId
+        if (planId) counts[planId] = (counts[planId] || 0) + 1
+      })
+      setClientCounts(counts)
     })
   }, [coach?.uid])
 
@@ -213,7 +231,7 @@ export default function WorkoutsPage() {
               </div>
               <div>
                 <div className="stat-label">Clients</div>
-                <div className="stat-value" style={{ color: '#D0BCFF' }}>{plan.clientCount || 0}</div>
+                <div className="stat-value" style={{ color: '#D0BCFF' }}>{clientCounts[plan.id] || 0}</div>
               </div>
               <div><StatusChip status={plan.status} /></div>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
@@ -237,7 +255,11 @@ export default function WorkoutsPage() {
               </div>
               <TypeChip type={plan.type} />
               <div style={{ display: 'flex', gap: '10px', marginTop: '14px', flexWrap: 'wrap' }}>
-                {[{ label: 'Weeks', value: plan.weeks }, { label: 'Sessions', value: `${plan.sessionsPerWeek}/wk` }, { label: 'Clients', value: plan.clientCount || 0 }].map((item, i) => (
+                {[
+                  { label: 'Weeks', value: plan.weeks },
+                  { label: 'Sessions', value: `${plan.sessionsPerWeek}/wk` },
+                  { label: 'Clients', value: clientCounts[plan.id] || 0 }
+                ].map((item, i) => (
                   <div key={i} style={{ background: '#1C1B1F', borderRadius: '10px', padding: '8px 14px', textAlign: 'center' }}>
                     <div style={{ fontSize: '10px', color: '#938F99', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>{item.label}</div>
                     <div style={{ fontSize: '14px', fontWeight: '500', color: i === 2 ? '#D0BCFF' : '#E6E1E5' }}>{item.value}</div>
